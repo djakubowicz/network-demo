@@ -1371,7 +1371,6 @@
         netbox_token: "{{ netbox_token }}"
         data:
           name: "{{ item.name }}"
-          slug: "{{ item.slug }}"
           type: "{{ item.type }}"
           identifier: "{{ item.identifier }}"
           description: "{{ item.description }}"
