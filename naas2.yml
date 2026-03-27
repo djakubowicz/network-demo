@@ -1,0 +1,1385 @@
+---
+- name: Network as Code - Infrastructure NetBox (mode full)
+  vars_files: vars/main.yml
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    netbox_url: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
+    netbox_token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+
+    # ============================================================
+    # REGIONS
+    # ============================================================
+    regions:
+      - name: Europe
+        slug: europe
+      - name: France
+        slug: france
+        parent: Europe
+
+    # ============================================================
+    # SITE GROUPS
+    # ============================================================
+    site_groups:
+      - name: Production
+        slug: production
+      - name: DR
+        slug: dr
+
+    # ============================================================
+    # MANUFACTURERS & DEVICE TYPES
+    # ============================================================
+    manufacturers_and_devices:
+      - manufacturer: Cisco
+        device_types:
+          - model: Catalyst 9300-24P
+            slug: catalyst-9300-24p
+            u_height: 1
+            is_full_depth: true
+          - model: Catalyst 9500-16X
+            slug: catalyst-9500-16x
+            u_height: 1
+            is_full_depth: true
+          - model: ASR 1001-X
+            slug: asr-1001-x
+            u_height: 1
+            is_full_depth: true
+          - model: Nexus 9336C-FX2
+            slug: nexus-9336c-fx2
+            u_height: 1
+            is_full_depth: true
+          - model: Catalyst 9200-48P
+            slug: catalyst-9200-48p
+            u_height: 1
+            is_full_depth: true
+
+      - manufacturer: Juniper
+        device_types:
+          - model: EX4300-24P
+            slug: ex4300-24p
+            u_height: 1
+            is_full_depth: true
+          - model: EX4650-48Y
+            slug: ex4650-48y
+            u_height: 1
+            is_full_depth: true
+          - model: MX204
+            slug: mx204
+            u_height: 2
+            is_full_depth: true
+          - model: MX10003
+            slug: mx10003
+            u_height: 7
+            is_full_depth: true
+          - model: SRX345
+            slug: srx345
+            u_height: 1
+            is_full_depth: true
+          - model: SRX4600
+            slug: srx4600
+            u_height: 2
+            is_full_depth: true
+
+      - manufacturer: Arista
+        device_types:
+          - model: DCS-7050CX3-32S
+            slug: dcs-7050cx3-32s
+            u_height: 1
+            is_full_depth: true
+          - model: DCS-7280CR3-32P4
+            slug: dcs-7280cr3-32p4
+            u_height: 1
+            is_full_depth: true
+          - model: DCS-7160-48YC6
+            slug: dcs-7160-48yc6
+            u_height: 1
+            is_full_depth: true
+
+      - manufacturer: Palo Alto Networks
+        device_types:
+          - model: PA-3220
+            slug: pa-3220
+            u_height: 1
+            is_full_depth: true
+          - model: PA-5220
+            slug: pa-5220
+            u_height: 2
+            is_full_depth: true
+          - model: PA-7080
+            slug: pa-7080
+            u_height: 10
+            is_full_depth: true
+
+      - manufacturer: F5
+        device_types:
+          - model: BIG-IP i4800
+            slug: big-ip-i4800
+            u_height: 2
+            is_full_depth: true
+          - model: BIG-IP i10800
+            slug: big-ip-i10800
+            u_height: 2
+            is_full_depth: true
+
+      - manufacturer: Fortinet
+        device_types:
+          - model: FortiGate 600E
+            slug: fortigate-600e
+            u_height: 1
+            is_full_depth: true
+          - model: FortiGate 3200F
+            slug: fortigate-3200f
+            u_height: 2
+            is_full_depth: true
+
+      - manufacturer: HPE
+        device_types:
+          - model: ProLiant DL380 Gen10
+            slug: proliant-dl380-gen10
+            u_height: 2
+            is_full_depth: true
+
+      - manufacturer: Dell
+        device_types:
+          - model: PowerEdge R750
+            slug: poweredge-r750
+            u_height: 2
+            is_full_depth: true
+
+    # ============================================================
+    # SITES
+    # ============================================================
+    sites:
+      - name: Paris-DC1
+        slug: paris-dc1
+        status: active
+        region: France
+        group: Production
+        description: "Datacenter principal Paris"
+        physical_address: "1 Rue de la Paix, 75001 Paris"
+        time_zone: "Europe/Paris"
+        asn: 65001
+
+      - name: Lyon-DC2
+        slug: lyon-dc2
+        status: active
+        region: France
+        group: DR
+        description: "Datacenter DR Lyon"
+        physical_address: "10 Rue Garibaldi, 69006 Lyon"
+        time_zone: "Europe/Paris"
+        asn: 65002
+
+      - name: Marseille-DC3
+        slug: marseille-dc3
+        status: active
+        region: France
+        group: Production
+        description: "Datacenter edge Marseille"
+        physical_address: "5 Rue de la République, 13001 Marseille"
+        time_zone: "Europe/Paris"
+        asn: 65003
+
+    # ============================================================
+    # LOCATIONS (salles dans les sites)
+    # ============================================================
+    locations:
+      - name: Salle-A
+        slug: paris-dc1-salle-a
+        site: Paris-DC1
+      - name: Salle-B
+        slug: paris-dc1-salle-b
+        site: Paris-DC1
+      - name: Salle-A
+        slug: lyon-dc2-salle-a
+        site: Lyon-DC2
+      - name: Salle-A
+        slug: marseille-dc3-salle-a
+        site: Marseille-DC3
+
+    # ============================================================
+    # RACKS
+    # ============================================================
+    racks:
+      - name: RACK-PDC1-A01
+        site: Paris-DC1
+        location: Salle-A
+        status: active
+        u_height: 42
+        width: 19
+        serial: RACK-001
+
+      - name: RACK-PDC1-A02
+        site: Paris-DC1
+        location: Salle-A
+        status: active
+        u_height: 42
+        width: 19
+        serial: RACK-002
+
+      - name: RACK-PDC1-B01
+        site: Paris-DC1
+        location: Salle-B
+        status: active
+        u_height: 42
+        width: 19
+        serial: RACK-003
+
+      - name: RACK-LDC2-A01
+        site: Lyon-DC2
+        location: Salle-A
+        status: active
+        u_height: 42
+        width: 19
+        serial: RACK-004
+
+      - name: RACK-MDC3-A01
+        site: Marseille-DC3
+        location: Salle-A
+        status: active
+        u_height: 42
+        width: 19
+        serial: RACK-005
+
+    # ============================================================
+    # DEVICE ROLES
+    # ============================================================
+    device_roles:
+      - name: Core Router
+        slug: core-router
+        color: aa1409
+        vm_role: false
+      - name: Edge Router
+        slug: edge-router
+        color: 9c27b0
+        vm_role: false
+      - name: Distribution Switch
+        slug: distribution-switch
+        color: f44336
+        vm_role: false
+      - name: Access Switch
+        slug: access-switch
+        color: 2196f3
+        vm_role: false
+      - name: Spine Switch
+        slug: spine-switch
+        color: 00bcd4
+        vm_role: false
+      - name: Leaf Switch
+        slug: leaf-switch
+        color: 009688
+        vm_role: false
+      - name: Firewall
+        slug: firewall
+        color: ff9800
+        vm_role: false
+      - name: Load Balancer
+        slug: load-balancer
+        color: 4caf50
+        vm_role: false
+      - name: Server
+        slug: server
+        color: 9e9e9e
+        vm_role: true
+
+    # ============================================================
+    # PLATFORMS
+    # ============================================================
+    platforms:
+      - name: Cisco IOS-XE
+        slug: cisco-ios-xe
+        manufacturer: Cisco
+        napalm_driver: ios
+      - name: Cisco NX-OS
+        slug: cisco-nx-os
+        manufacturer: Cisco
+        napalm_driver: nxos
+      - name: Juniper Junos
+        slug: juniper-junos
+        manufacturer: Juniper
+        napalm_driver: junos
+      - name: Arista EOS
+        slug: arista-eos
+        manufacturer: Arista
+        napalm_driver: eos
+      - name: PAN-OS
+        slug: pan-os
+        manufacturer: Palo Alto Networks
+      - name: F5 TMOS
+        slug: f5-tmos
+        manufacturer: F5
+      - name: FortiOS
+        slug: fortios
+        manufacturer: Fortinet
+      - name: Linux
+        slug: linux
+        manufacturer: HPE
+
+    # ============================================================
+    # DEVICES
+    # ============================================================
+    devices:
+      # --- Paris DC1 - Core ---
+      - name: PAR-CORE-RTR-01
+        device_type: ASR 1001-X
+        device_role: Core Router
+        platform: Cisco IOS-XE
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 40
+        face: front
+        status: active
+        serial: CSR1001X-001
+
+      - name: PAR-CORE-RTR-02
+        device_type: MX10003
+        device_role: Core Router
+        platform: Juniper Junos
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 33
+        face: front
+        status: active
+        serial: MX10003-001
+
+      # --- Paris DC1 - Spine/Leaf ---
+      - name: PAR-SPINE-SW-01
+        device_type: Nexus 9336C-FX2
+        device_role: Spine Switch
+        platform: Cisco NX-OS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 30
+        face: front
+        status: active
+        serial: N9K-SPINE-001
+
+      - name: PAR-SPINE-SW-02
+        device_type: DCS-7280CR3-32P4
+        device_role: Spine Switch
+        platform: Arista EOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 28
+        face: front
+        status: active
+        serial: ARISTA-SPINE-001
+
+      - name: PAR-LEAF-SW-01
+        device_type: DCS-7050CX3-32S
+        device_role: Leaf Switch
+        platform: Arista EOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A02
+        position: 30
+        face: front
+        status: active
+        serial: ARISTA-LEAF-001
+
+      - name: PAR-LEAF-SW-02
+        device_type: DCS-7050CX3-32S
+        device_role: Leaf Switch
+        platform: Arista EOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A02
+        position: 28
+        face: front
+        status: active
+        serial: ARISTA-LEAF-002
+
+      - name: PAR-LEAF-SW-03
+        device_type: EX4650-48Y
+        device_role: Leaf Switch
+        platform: Juniper Junos
+        site: Paris-DC1
+        rack: RACK-PDC1-A02
+        position: 26
+        face: front
+        status: active
+        serial: EX4650-001
+
+      # --- Paris DC1 - Access ---
+      - name: PAR-ACC-SW-01
+        device_type: Catalyst 9300-24P
+        device_role: Access Switch
+        platform: Cisco IOS-XE
+        site: Paris-DC1
+        rack: RACK-PDC1-B01
+        position: 20
+        face: front
+        status: active
+        serial: C9300-001
+
+      - name: PAR-ACC-SW-02
+        device_type: Catalyst 9200-48P
+        device_role: Access Switch
+        platform: Cisco IOS-XE
+        site: Paris-DC1
+        rack: RACK-PDC1-B01
+        position: 18
+        face: front
+        status: active
+        serial: C9200-001
+
+      - name: PAR-ACC-SW-03
+        device_type: EX4300-24P
+        device_role: Access Switch
+        platform: Juniper Junos
+        site: Paris-DC1
+        rack: RACK-PDC1-B01
+        position: 16
+        face: front
+        status: active
+        serial: EX4300-001
+
+      # --- Paris DC1 - Security ---
+      - name: PAR-FW-01
+        device_type: PA-7080
+        device_role: Firewall
+        platform: PAN-OS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 20
+        face: front
+        status: active
+        serial: PA7080-001
+
+      - name: PAR-FW-02
+        device_type: FortiGate 3200F
+        device_role: Firewall
+        platform: FortiOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 18
+        face: front
+        status: active
+        serial: FG3200F-001
+
+      - name: PAR-LB-01
+        device_type: BIG-IP i10800
+        device_role: Load Balancer
+        platform: F5 TMOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 14
+        face: front
+        status: active
+        serial: F5-I10800-001
+
+      - name: PAR-LB-02
+        device_type: BIG-IP i4800
+        device_role: Load Balancer
+        platform: F5 TMOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 12
+        face: front
+        status: active
+        serial: F5-I4800-001
+
+      # --- Paris DC1 - Servers ---
+      - name: PAR-SRV-01
+        device_type: ProLiant DL380 Gen10
+        device_role: Server
+        platform: Linux
+        site: Paris-DC1
+        rack: RACK-PDC1-B01
+        position: 10
+        face: front
+        status: active
+        serial: HPE-DL380-001
+
+      - name: PAR-SRV-02
+        device_type: PowerEdge R750
+        device_role: Server
+        platform: Linux
+        site: Paris-DC1
+        rack: RACK-PDC1-B01
+        position: 8
+        face: front
+        status: active
+        serial: DELL-R750-001
+
+      # --- Lyon DC2 ---
+      - name: LYO-EDGE-RTR-01
+        device_type: MX204
+        device_role: Edge Router
+        platform: Juniper Junos
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 40
+        face: front
+        status: active
+        serial: MX204-001
+
+      - name: LYO-DIST-SW-01
+        device_type: DCS-7160-48YC6
+        device_role: Distribution Switch
+        platform: Arista EOS
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 30
+        face: front
+        status: active
+        serial: ARISTA-7160-001
+
+      - name: LYO-DIST-SW-02
+        device_type: Catalyst 9500-16X
+        device_role: Distribution Switch
+        platform: Cisco IOS-XE
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 28
+        face: front
+        status: active
+        serial: C9500-001
+
+      - name: LYO-ACC-SW-01
+        device_type: Catalyst 9300-24P
+        device_role: Access Switch
+        platform: Cisco IOS-XE
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 20
+        face: front
+        status: active
+        serial: C9300-002
+
+      - name: LYO-FW-01
+        device_type: PA-5220
+        device_role: Firewall
+        platform: PAN-OS
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 35
+        face: front
+        status: active
+        serial: PA5220-001
+
+      - name: LYO-FW-02
+        device_type: FortiGate 600E
+        device_role: Firewall
+        platform: FortiOS
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 33
+        face: front
+        status: active
+        serial: FG600E-001
+
+      - name: LYO-SRV-01
+        device_type: PowerEdge R750
+        device_role: Server
+        platform: Linux
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 10
+        face: front
+        status: active
+        serial: DELL-R750-002
+
+      # --- Marseille DC3 ---
+      - name: MRS-EDGE-RTR-01
+        device_type: SRX4600
+        device_role: Edge Router
+        platform: Juniper Junos
+        site: Marseille-DC3
+        rack: RACK-MDC3-A01
+        position: 40
+        face: front
+        status: active
+        serial: SRX4600-001
+
+      - name: MRS-DIST-SW-01
+        device_type: EX4650-48Y
+        device_role: Distribution Switch
+        platform: Juniper Junos
+        site: Marseille-DC3
+        rack: RACK-MDC3-A01
+        position: 30
+        face: front
+        status: active
+        serial: EX4650-002
+
+      - name: MRS-FW-01
+        device_type: PA-3220
+        device_role: Firewall
+        platform: PAN-OS
+        site: Marseille-DC3
+        rack: RACK-MDC3-A01
+        position: 35
+        face: front
+        status: active
+        serial: PA3220-001
+
+      - name: MRS-ACC-SW-01
+        device_type: Catalyst 9200-48P
+        device_role: Access Switch
+        platform: Cisco IOS-XE
+        site: Marseille-DC3
+        rack: RACK-MDC3-A01
+        position: 20
+        face: front
+        status: active
+        serial: C9200-002
+
+    # ============================================================
+    # VRFs
+    # ============================================================
+    vrfs:
+      - name: PROD
+        rd: "65000:100"
+        description: "VRF Production"
+      - name: MGMT
+        rd: "65000:999"
+        description: "VRF Management"
+      - name: DMZ
+        rd: "65000:200"
+        description: "VRF DMZ"
+      - name: BACKUP
+        rd: "65000:300"
+        description: "VRF Backup/Replication"
+      - name: VOIP
+        rd: "65000:400"
+        description: "VRF VoIP"
+
+    # ============================================================
+    # VLAN GROUPS
+    # ============================================================
+    vlan_groups:
+      - name: Paris-DC1-VLANs
+        slug: paris-dc1-vlans
+        site: Paris-DC1
+      - name: Lyon-DC2-VLANs
+        slug: lyon-dc2-vlans
+        site: Lyon-DC2
+      - name: Marseille-DC3-VLANs
+        slug: marseille-dc3-vlans
+        site: Marseille-DC3
+
+    # ============================================================
+    # VLANs
+    # ============================================================
+    vlans:
+      # Paris DC1
+      - name: MGMT
+        vid: 100
+        site: Paris-DC1
+        status: active
+        vrf: MGMT
+        description: "Management Paris"
+      - name: SERVERS-PROD
+        vid: 200
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        description: "Serveurs production Paris"
+      - name: SERVERS-DMZ
+        vid: 210
+        site: Paris-DC1
+        status: active
+        vrf: DMZ
+        description: "Serveurs DMZ Paris"
+      - name: SERVERS-DEV
+        vid: 220
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        description: "Serveurs dev/test Paris"
+      - name: USERS
+        vid: 300
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        description: "Utilisateurs Paris"
+      - name: VOIP
+        vid: 400
+        site: Paris-DC1
+        status: active
+        vrf: VOIP
+        description: "VoIP Paris"
+      - name: BACKUP
+        vid: 500
+        site: Paris-DC1
+        status: active
+        vrf: BACKUP
+        description: "Backup/Replication Paris"
+      - name: VMOTION
+        vid: 600
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        description: "VMware vMotion Paris"
+      - name: STORAGE
+        vid: 700
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        description: "Storage/iSCSI Paris"
+      - name: NATIVE
+        vid: 999
+        site: Paris-DC1
+        status: active
+        description: "Native VLAN Paris"
+
+      # Lyon DC2
+      - name: MGMT
+        vid: 100
+        site: Lyon-DC2
+        status: active
+        vrf: MGMT
+        description: "Management Lyon"
+      - name: SERVERS-PROD
+        vid: 200
+        site: Lyon-DC2
+        status: active
+        vrf: PROD
+        description: "Serveurs production Lyon"
+      - name: SERVERS-DMZ
+        vid: 210
+        site: Lyon-DC2
+        status: active
+        vrf: DMZ
+        description: "Serveurs DMZ Lyon"
+      - name: USERS
+        vid: 300
+        site: Lyon-DC2
+        status: active
+        vrf: PROD
+        description: "Utilisateurs Lyon"
+      - name: BACKUP
+        vid: 500
+        site: Lyon-DC2
+        status: active
+        vrf: BACKUP
+        description: "Backup Lyon"
+
+      # Marseille DC3
+      - name: MGMT
+        vid: 100
+        site: Marseille-DC3
+        status: active
+        vrf: MGMT
+        description: "Management Marseille"
+      - name: SERVERS-PROD
+        vid: 200
+        site: Marseille-DC3
+        status: active
+        vrf: PROD
+        description: "Serveurs production Marseille"
+      - name: USERS
+        vid: 300
+        site: Marseille-DC3
+        status: active
+        vrf: PROD
+        description: "Utilisateurs Marseille"
+
+    # ============================================================
+    # PREFIXES
+    # ============================================================
+    prefixes:
+      # Supernets
+      - prefix: 10.0.0.0/8
+        description: "Espace adressage global privé"
+        status: container
+      - prefix: 172.16.0.0/12
+        description: "Espace adressage OOB"
+        status: container
+
+      # Paris DC1
+      - prefix: 10.10.0.0/16
+        description: "Paris DC1 - Global"
+        site: Paris-DC1
+        status: container
+        vrf: PROD
+      - prefix: 10.10.100.0/24
+        description: "Paris DC1 - MGMT"
+        site: Paris-DC1
+        status: active
+        vrf: MGMT
+        vlan: 100
+      - prefix: 10.10.200.0/24
+        description: "Paris DC1 - Servers PROD"
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        vlan: 200
+      - prefix: 10.10.210.0/24
+        description: "Paris DC1 - DMZ"
+        site: Paris-DC1
+        status: active
+        vrf: DMZ
+        vlan: 210
+      - prefix: 10.10.220.0/24
+        description: "Paris DC1 - Dev"
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        vlan: 220
+      - prefix: 10.10.30.0/24
+        description: "Paris DC1 - Users"
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        vlan: 300
+      - prefix: 10.10.40.0/24
+        description: "Paris DC1 - VoIP"
+        site: Paris-DC1
+        status: active
+        vrf: VOIP
+        vlan: 400
+      - prefix: 10.10.50.0/24
+        description: "Paris DC1 - Backup"
+        site: Paris-DC1
+        status: active
+        vrf: BACKUP
+        vlan: 500
+      - prefix: 10.10.60.0/24
+        description: "Paris DC1 - vMotion"
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        vlan: 600
+      - prefix: 10.10.70.0/24
+        description: "Paris DC1 - Storage"
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+        vlan: 700
+
+      # Lyon DC2
+      - prefix: 10.20.0.0/16
+        description: "Lyon DC2 - Global"
+        site: Lyon-DC2
+        status: container
+        vrf: PROD
+      - prefix: 10.20.100.0/24
+        description: "Lyon DC2 - MGMT"
+        site: Lyon-DC2
+        status: active
+        vrf: MGMT
+        vlan: 100
+      - prefix: 10.20.200.0/24
+        description: "Lyon DC2 - Servers PROD"
+        site: Lyon-DC2
+        status: active
+        vrf: PROD
+        vlan: 200
+      - prefix: 10.20.210.0/24
+        description: "Lyon DC2 - DMZ"
+        site: Lyon-DC2
+        status: active
+        vrf: DMZ
+        vlan: 210
+      - prefix: 10.20.30.0/24
+        description: "Lyon DC2 - Users"
+        site: Lyon-DC2
+        status: active
+        vrf: PROD
+        vlan: 300
+      - prefix: 10.20.50.0/24
+        description: "Lyon DC2 - Backup"
+        site: Lyon-DC2
+        status: active
+        vrf: BACKUP
+        vlan: 500
+
+      # Marseille DC3
+      - prefix: 10.30.0.0/16
+        description: "Marseille DC3 - Global"
+        site: Marseille-DC3
+        status: container
+        vrf: PROD
+      - prefix: 10.30.100.0/24
+        description: "Marseille DC3 - MGMT"
+        site: Marseille-DC3
+        status: active
+        vrf: MGMT
+        vlan: 100
+      - prefix: 10.30.200.0/24
+        description: "Marseille DC3 - Servers PROD"
+        site: Marseille-DC3
+        status: active
+        vrf: PROD
+        vlan: 200
+      - prefix: 10.30.30.0/24
+        description: "Marseille DC3 - Users"
+        site: Marseille-DC3
+        status: active
+        vrf: PROD
+        vlan: 300
+
+      # OOB Management
+      - prefix: 172.16.0.0/16
+        description: "OOB Global"
+        status: container
+      - prefix: 172.16.10.0/24
+        description: "OOB Paris DC1"
+        site: Paris-DC1
+        status: active
+      - prefix: 172.16.20.0/24
+        description: "OOB Lyon DC2"
+        site: Lyon-DC2
+        status: active
+      - prefix: 172.16.30.0/24
+        description: "OOB Marseille DC3"
+        site: Marseille-DC3
+        status: active
+
+      # Loopbacks
+      - prefix: 10.255.0.0/24
+        description: "Loopbacks infrastructure"
+        status: active
+        vrf: PROD
+
+      # Point-to-Point links
+      - prefix: 10.254.0.0/24
+        description: "Liens point-à-point"
+        status: active
+        vrf: PROD
+
+    # ============================================================
+    # ROUTE TARGETS
+    # ============================================================
+    route_targets:
+      - name: "65000:100"
+        description: "RT PROD import/export"
+      - name: "65000:200"
+        description: "RT DMZ import/export"
+      - name: "65000:300"
+        description: "RT BACKUP import/export"
+      - name: "65000:400"
+        description: "RT VOIP import/export"
+      - name: "65000:999"
+        description: "RT MGMT import/export"
+
+    # ============================================================
+    # ASNs
+    # ============================================================
+    asns:
+      - asn: 65001
+        description: "AS Paris DC1"
+        rir: RFC6996
+      - asn: 65002
+        description: "AS Lyon DC2"
+        rir: RFC6996
+      - asn: 65003
+        description: "AS Marseille DC3"
+        rir: RFC6996
+      - asn: 65100
+        description: "AS Transit Provider"
+        rir: RFC6996
+
+    # ============================================================
+    # TUNNEL / VPN (via provider network)
+    # ============================================================
+    tunnels:
+      - name: VPN-PAR-LYO-01
+        status: active
+        encapsulation: ipsec-tunnel
+        description: "Tunnel IPSec Paris-DC1 vers Lyon-DC2"
+
+      - name: VPN-PAR-MRS-01
+        status: active
+        encapsulation: ipsec-tunnel
+        description: "Tunnel IPSec Paris-DC1 vers Marseille-DC3"
+
+      - name: VPN-LYO-MRS-01
+        status: active
+        encapsulation: ipsec-tunnel
+        description: "Tunnel IPSec Lyon-DC2 vers Marseille-DC3"
+
+      - name: GRE-PAR-LYO-01
+        status: active
+        encapsulation: gre
+        description: "Tunnel GRE Paris-DC1 vers Lyon-DC2"
+
+    # ============================================================
+    # L2VPN (VXLAN/MPLS)
+    # ============================================================
+    l2vpns:
+      - name: VXLAN-PROD
+        slug: vxlan-prod
+        type: vxlan
+        identifier: 10200
+        description: "VXLAN overlay production inter-DC"
+
+      - name: VXLAN-DMZ
+        slug: vxlan-dmz
+        type: vxlan
+        identifier: 10210
+        description: "VXLAN overlay DMZ inter-DC"
+
+      - name: MPLS-L2-BACKUP
+        slug: mpls-l2-backup
+        type: mpls-evpn
+        identifier: 500
+        description: "MPLS EVPN circuit backup inter-DC"
+
+    # ============================================================
+    # IP ADDRESSES (loopbacks & management)
+    # ============================================================
+    ip_addresses:
+      # Loopbacks
+      - address: 10.255.0.1/32
+        vrf: PROD
+        status: active
+        dns_name: lo0.par-core-rtr-01.infra.local
+        description: "Loopback PAR-CORE-RTR-01"
+        device: PAR-CORE-RTR-01
+
+      - address: 10.255.0.2/32
+        vrf: PROD
+        status: active
+        dns_name: lo0.par-core-rtr-02.infra.local
+        description: "Loopback PAR-CORE-RTR-02"
+        device: PAR-CORE-RTR-02
+
+      - address: 10.255.0.3/32
+        vrf: PROD
+        status: active
+        dns_name: lo0.par-spine-sw-01.infra.local
+        description: "Loopback PAR-SPINE-SW-01"
+        device: PAR-SPINE-SW-01
+
+      - address: 10.255.0.4/32
+        vrf: PROD
+        status: active
+        dns_name: lo0.par-spine-sw-02.infra.local
+        description: "Loopback PAR-SPINE-SW-02"
+        device: PAR-SPINE-SW-02
+
+      - address: 10.255.0.10/32
+        vrf: PROD
+        status: active
+        dns_name: lo0.lyo-edge-rtr-01.infra.local
+        description: "Loopback LYO-EDGE-RTR-01"
+        device: LYO-EDGE-RTR-01
+
+      - address: 10.255.0.20/32
+        vrf: PROD
+        status: active
+        dns_name: lo0.mrs-edge-rtr-01.infra.local
+        description: "Loopback MRS-EDGE-RTR-01"
+        device: MRS-EDGE-RTR-01
+
+      # OOB Management
+      - address: 172.16.10.1/24
+        status: active
+        dns_name: mgmt.par-core-rtr-01.infra.local
+        description: "OOB MGMT PAR-CORE-RTR-01"
+        device: PAR-CORE-RTR-01
+
+      - address: 172.16.10.2/24
+        status: active
+        dns_name: mgmt.par-core-rtr-02.infra.local
+        description: "OOB MGMT PAR-CORE-RTR-02"
+        device: PAR-CORE-RTR-02
+
+      - address: 172.16.10.3/24
+        status: active
+        dns_name: mgmt.par-fw-01.infra.local
+        description: "OOB MGMT PAR-FW-01"
+        device: PAR-FW-01
+
+      - address: 172.16.20.1/24
+        status: active
+        dns_name: mgmt.lyo-edge-rtr-01.infra.local
+        description: "OOB MGMT LYO-EDGE-RTR-01"
+        device: LYO-EDGE-RTR-01
+
+      - address: 172.16.30.1/24
+        status: active
+        dns_name: mgmt.mrs-edge-rtr-01.infra.local
+        description: "OOB MGMT MRS-EDGE-RTR-01"
+        device: MRS-EDGE-RTR-01
+
+    # ============================================================
+    # SERVICES
+    # ============================================================
+    services:
+      - device: PAR-CORE-RTR-01
+        name: BGP
+        protocol: tcp
+        ports: [179]
+        description: "BGP peering"
+
+      - device: PAR-CORE-RTR-01
+        name: SNMP
+        protocol: udp
+        ports: [161]
+        description: "Monitoring SNMP"
+
+      - device: PAR-FW-01
+        name: HTTPS-MGMT
+        protocol: tcp
+        ports: [443]
+        description: "Interface d'administration"
+
+      - device: PAR-LB-01
+        name: HTTPS
+        protocol: tcp
+        ports: [443, 80]
+        description: "Load balancing HTTP/S"
+
+      - device: LYO-EDGE-RTR-01
+        name: BGP
+        protocol: tcp
+        ports: [179]
+        description: "BGP peering Lyon"
+
+  # ============================================================
+  # TASKS
+  # ============================================================
+  tasks:
+
+    - name: Créer les regions
+      netbox.netbox.netbox_region:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          parent_region: "{{ item.parent | default(omit) }}"
+        state: present
+      loop: "{{ regions }}"
+
+    - name: Créer les site groups
+      netbox.netbox.netbox_site_group:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+        state: present
+      loop: "{{ site_groups }}"
+
+    - name: Créer les manufacturers
+      netbox.netbox.netbox_manufacturer:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.manufacturer }}"
+        state: present
+      loop: "{{ manufacturers_and_devices }}"
+
+    - name: Créer les device types
+      netbox.netbox.netbox_device_type:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          manufacturer: "{{ item.0.manufacturer }}"
+          model: "{{ item.1.model }}"
+          slug: "{{ item.1.slug }}"
+          u_height: "{{ item.1.u_height }}"
+          is_full_depth: "{{ item.1.is_full_depth }}"
+        state: present
+      loop: "{{ manufacturers_and_devices | subelements('device_types') }}"
+
+    - name: Créer les sites
+      netbox.netbox.netbox_site:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          status: "{{ item.status }}"
+          region: "{{ item.region }}"
+          group: "{{ item.group }}"
+          description: "{{ item.description }}"
+          physical_address: "{{ item.physical_address }}"
+          time_zone: "{{ item.time_zone }}"
+        state: present
+      loop: "{{ sites }}"
+
+    - name: Créer les locations
+      netbox.netbox.netbox_location:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          site: "{{ item.site }}"
+        state: present
+      loop: "{{ locations }}"
+
+    - name: Créer les racks
+      netbox.netbox.netbox_rack:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          site: "{{ item.site }}"
+          location: "{{ item.location }}"
+          status: "{{ item.status }}"
+          u_height: "{{ item.u_height }}"
+          width: "{{ item.width }}"
+          serial: "{{ item.serial }}"
+        state: present
+      loop: "{{ racks }}"
+
+    - name: Créer les device roles
+      netbox.netbox.netbox_device_role:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          color: "{{ item.color }}"
+          vm_role: "{{ item.vm_role }}"
+        state: present
+      loop: "{{ device_roles }}"
+
+    - name: Créer les platforms
+      netbox.netbox.netbox_platform:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          manufacturer: "{{ item.manufacturer }}"
+          napalm_driver: "{{ item.napalm_driver | default(omit) }}"
+        state: present
+      loop: "{{ platforms }}"
+
+    - name: Créer les VRFs
+      netbox.netbox.netbox_vrf:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          rd: "{{ item.rd }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ vrfs }}"
+
+    - name: Créer les route targets
+      netbox.netbox.netbox_route_target:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ route_targets }}"
+
+    - name: Créer les ASNs
+      netbox.netbox.netbox_asn:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          asn: "{{ item.asn }}"
+          rir: "{{ item.rir }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ asns }}"
+
+    - name: Créer les VLAN groups
+      netbox.netbox.netbox_vlan_group:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          site: "{{ item.site }}"
+        state: present
+      loop: "{{ vlan_groups }}"
+
+    - name: Créer les VLANs
+      netbox.netbox.netbox_vlan:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          vid: "{{ item.vid }}"
+          site: "{{ item.site }}"
+          status: "{{ item.status }}"
+          vrf: "{{ item.vrf | default(omit) }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ vlans }}"
+
+    - name: Créer les prefixes
+      netbox.netbox.netbox_prefix:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          prefix: "{{ item.prefix }}"
+          description: "{{ item.description }}"
+          site: "{{ item.site | default(omit) }}"
+          status: "{{ item.status }}"
+          vrf: "{{ item.vrf | default(omit) }}"
+          vlan: "{{ item.vlan | default(omit) }}"
+        state: present
+      loop: "{{ prefixes }}"
+
+    - name: Créer les devices
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          device_type: "{{ item.device_type }}"
+          device_role: "{{ item.device_role }}"
+          platform: "{{ item.platform }}"
+          site: "{{ item.site }}"
+          rack: "{{ item.rack }}"
+          position: "{{ item.position }}"
+          face: "{{ item.face }}"
+          status: "{{ item.status }}"
+          serial: "{{ item.serial }}"
+        state: present
+      loop: "{{ devices }}"
+
+    - name: Créer les tunnels VPN
+      netbox.netbox.netbox_tunnel:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          status: "{{ item.status }}"
+          encapsulation: "{{ item.encapsulation }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ tunnels }}"
+
+    - name: Créer les L2VPNs
+      netbox.netbox.netbox_l2vpn:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          type: "{{ item.type }}"
+          identifier: "{{ item.identifier }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ l2vpns }}"
+
+    - name: Créer les adresses IP
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          address: "{{ item.address }}"
+          vrf: "{{ item.vrf | default(omit) }}"
+          status: "{{ item.status }}"
+          dns_name: "{{ item.dns_name | default(omit) }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ ip_addresses }}"
+
+    - name: Créer les services
+      netbox.netbox.netbox_service:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          device: "{{ item.device }}"
+          name: "{{ item.name }}"
+          protocol: "{{ item.protocol }}"
+          ports: "{{ item.ports }}"
+          description: "{{ item.description }}"
+        state: present
+      loop: "{{ services }}"
