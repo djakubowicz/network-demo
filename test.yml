@@ -19,7 +19,7 @@
         netbox_token: "{{ netbox_token }}"
         validate_certs: no
         data: 
-          name: "{{ items }}"
+          name: "{{ item }}"
         state: present
       loop: "{{ manufacturers }}"
       delegate_to: localhost
