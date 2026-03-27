@@ -664,55 +664,46 @@
         vid: 100
         site: Paris-DC1
         status: active
-        vrf: MGMT
         description: "Management Paris"
       - name: SERVERS-PROD
         vid: 200
         site: Paris-DC1
         status: active
-        vrf: PROD
         description: "Serveurs production Paris"
       - name: SERVERS-DMZ
         vid: 210
         site: Paris-DC1
         status: active
-        vrf: DMZ
         description: "Serveurs DMZ Paris"
       - name: SERVERS-DEV
         vid: 220
         site: Paris-DC1
         status: active
-        vrf: PROD
         description: "Serveurs dev/test Paris"
       - name: USERS
         vid: 300
         site: Paris-DC1
         status: active
-        vrf: PROD
         description: "Utilisateurs Paris"
       - name: VOIP
         vid: 400
         site: Paris-DC1
         status: active
-        vrf: VOIP
         description: "VoIP Paris"
       - name: BACKUP
         vid: 500
         site: Paris-DC1
         status: active
-        vrf: BACKUP
         description: "Backup/Replication Paris"
       - name: VMOTION
         vid: 600
         site: Paris-DC1
         status: active
-        vrf: PROD
         description: "VMware vMotion Paris"
       - name: STORAGE
         vid: 700
         site: Paris-DC1
         status: active
-        vrf: PROD
         description: "Storage/iSCSI Paris"
       - name: NATIVE
         vid: 999
@@ -725,31 +716,26 @@
         vid: 100
         site: Lyon-DC2
         status: active
-        vrf: MGMT
         description: "Management Lyon"
       - name: SERVERS-PROD
         vid: 200
         site: Lyon-DC2
         status: active
-        vrf: PROD
         description: "Serveurs production Lyon"
       - name: SERVERS-DMZ
         vid: 210
         site: Lyon-DC2
         status: active
-        vrf: DMZ
         description: "Serveurs DMZ Lyon"
       - name: USERS
         vid: 300
         site: Lyon-DC2
         status: active
-        vrf: PROD
         description: "Utilisateurs Lyon"
       - name: BACKUP
         vid: 500
         site: Lyon-DC2
         status: active
-        vrf: BACKUP
         description: "Backup Lyon"
 
       # Marseille DC3
@@ -757,19 +743,16 @@
         vid: 100
         site: Marseille-DC3
         status: active
-        vrf: MGMT
         description: "Management Marseille"
       - name: SERVERS-PROD
         vid: 200
         site: Marseille-DC3
         status: active
-        vrf: PROD
         description: "Serveurs production Marseille"
       - name: USERS
         vid: 300
         site: Marseille-DC3
         status: active
-        vrf: PROD
         description: "Utilisateurs Marseille"
 
     # ============================================================
