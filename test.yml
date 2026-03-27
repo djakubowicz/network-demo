@@ -1,7 +1,6 @@
 ---
 - name: Push to Netbox
-  connection: network_cli
-  hosts: sites_cisco-live-emea
+  hosts: localhost
   gather_facts: false
   vars_files: vars/main.yml
   vars:
