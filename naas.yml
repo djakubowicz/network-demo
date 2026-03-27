@@ -1,0 +1,365 @@
+---
+
+- name: Get nodes from Inventory and add to Groups
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+  - include_role: 
+      name: utils_hosts_aws
+
+- name: Collect Cisco Facts
+  hosts: cisco
+  gather_facts: false
+  vars_files: vars/main.yml
+  vars:
+    ansible_connection: network_cli
+    ansible_network_os: ios
+    ansible_command_timeout: 300
+  tasks:
+    - name: Cisco Facts
+      #connection: local
+      cisco.ios.ios_facts:
+        gather_subset:
+          # - hardware
+          - all
+        gather_network_resources:
+          # - "interfaces"
+          # - "l2_interfaces"
+          # - "l3_interfaces"
+          # - "acl_interfaces"
+          # - "static_routes" 
+          # - "acls" 
+          # - "vlans"
+          - all
+      become: true
+      register: _ios_facts
+    # - name: Debug IOS facts
+    #   debug:
+    #     var: _ios_facts
+    - name: Set IOS facts
+      set_fact:
+        _facts: "{{ _ios_facts }}"
+
+- name: Collect Arista Facts
+  hosts: arista
+  gather_facts: false
+  vars_files: vars/main.yml
+  vars:
+    ansible_connection: network_cli
+    ansible_network_os: eos
+    ansible_command_timeout: 300
+  tasks:
+    - name: EOS Facts
+      arista.eos.eos_facts:
+        gather_subset: all
+        gather_network_resources: all
+      become: true
+      register: _eos_facts
+    # - name: Debug EOS facts
+    #   debug:
+    #     var: _eos_facts
+    - name: Set EOS facts
+      set_fact:
+        _facts: "{{ _eos_facts }}"
+
+- name: Collect Juniper Facts
+  hosts: juniper
+  gather_facts: false
+  vars:
+    ansible_connection: netconf
+    ansible_network_os: junos
+    ansible_command_timeout: 300
+  tasks:
+    - name: JunOS Facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - all
+        gather_network_resources:
+          - all
+      register: _junos_facts
+    # - name: Debug JunOS facts
+    #   debug:
+    #     var: _junos_facts
+    - name: Set JunOS facts
+      set_fact:
+        _facts: "{{ _junos_facts }}"
+
+- name: Push to Netbox
+  hosts: cisco,arista,juniper
+  gather_facts: false
+  vars_files: vars/main.yml
+  vars:
+    ansible_connection: local
+  tasks:
+    - name: Set Netbox URL
+      set_fact:
+        netbox_url: "http://{{ hostvars[groups['netbox'][0]].public_dns_name }}:8000"
+
+    - name: Create a Token (not first time)
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/users/tokens/provision/"
+        method: POST
+        body: |
+          { 
+            "username": "admin",
+            "password": "{{ ec2_netbox_pass }}"
+          }
+        status_code: 201
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+          Accept: "application/json; indent=4"
+      run_once: true
+      delegate_to: localhost
+      register: netbox_token
+
+    - name: Push site data to Netbox
+      netbox.netbox.netbox_site:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          name: "{{ site }}"
+          slug: "{{ site }}"
+          description: "Site located in {{ site }}"
+          status: Active
+        state: present
+      run_once: true
+      delegate_to: localhost
+
+    - name: Set Manufacturer (Cisco)
+      set_fact:
+        manufacturer: "Cisco"
+      #when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name | regex_search("^cisco-2$")
+      when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name is match("^cisco-2$")
+      delegate_to: localhost
+
+    - name: Set Manufacturer (Arista)
+      set_fact:
+        manufacturer: "Arista"
+      #when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name | regex_search("^arista-2$")
+      when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name is match("^arista-2$")
+      delegate_to: localhost
+
+    - name: Set Manufacturer (Juniper)
+      set_fact:
+        manufacturer: "Juniper"
+      #when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name | regex_search("^juniper-2$")
+      when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name is match("^juniper-2$")
+      delegate_to: localhost
+
+    - name: Push Manufacturer to Netbox
+      netbox.netbox.netbox_manufacturer:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          name: "{{ manufacturer }}"
+        state: present
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push device type data to Netbox
+      netbox.netbox.netbox_device_type:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          model: "{{ _facts.ansible_facts.ansible_net_model | lower }}"
+          manufacturer: "{{ manufacturer }}"
+          slug: "{{ _facts.ansible_facts.ansible_net_model }}"
+        state: present
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push devices role data to Netbox
+      netbox.netbox.netbox_device_role:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          name: "demo"
+        state: present
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push devices data to Netbox
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          name: "{{ inventory_hostname }}"
+          site: "{{ site }}"
+          serial: "{{ _facts.ansible_facts.ansible_net_serialnum }}"
+          device_type: "{{ _facts.ansible_facts.ansible_net_model | lower }}"
+          device_role: "demo"
+          local_context_data: "{{ _facts.ansible_facts.ansible_network_resources }}"
+          comments: "Added by AAP"
+        state: present
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push interfaces data to Netbox (Cisco)
+      netbox.netbox.netbox_device_interface:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          device: "{{ inventory_hostname }}"
+          name: "{{ item.name }}"
+          type: "Virtual"
+          description: "{{ item.name }} description"
+        state: present
+      loop: "{{ _facts.ansible_facts.ansible_network_resources.interfaces }}"
+      #when: hostvars[inventory_hostname].tags.Name | regex_search("^cisco-2$") and _facts.ansible_facts.ansible_network_resources.interfaces is defined
+      when: hostvars[inventory_hostname].tags.Name is match("^cisco-2$") and _facts.ansible_facts.ansible_network_resources.interfaces is defined
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push interfaces data to Netbox (Arista)
+      netbox.netbox.netbox_device_interface:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          device: "{{ inventory_hostname }}"
+          name: "{{ item.key }}"
+          type: "Virtual"
+          description: "{{ item.key }} description"
+        state: present
+      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
+      #when: hostvars[inventory_hostname].tags.Name | regex_search("^arista-2$")
+      when: hostvars[inventory_hostname].tags.Name is match("^arista-2$")
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push interfaces data to Netbox (Juniper)
+      netbox.netbox.netbox_device_interface:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          device: "{{ inventory_hostname }}"
+          name: "{{ item.key }}"
+          type: "Virtual"
+          description: "{{ item.key }} description"
+        state: present
+      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
+      #when: hostvars[inventory_hostname].tags.Name | regex_search("^juniper-2$")
+      when: hostvars[inventory_hostname].tags.Name is match("^juniper-2$")
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push IPv4 addresses data to Netbox (Cisco)
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          assigned_object:
+            name: "{{ item.name }}"
+            device: "{{ inventory_hostname }}"
+          #family: 4
+          address: "{{ item.ipv4[0].address }}"
+          description: "{{ item.ipv4[0].address }} description"
+        state: present
+      loop: "{{ _facts.ansible_facts.ansible_network_resources.l3_interfaces }}"
+      #when: hostvars[inventory_hostname].tags.Name | regex_search("^cisco-2$") and item.ipv4[0].address is defined
+      when: hostvars[inventory_hostname].tags.Name is match("^cisco-2$") and item.ipv4[0].address is defined
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push IPv4 addresses data to Netbox (Arista)
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          assigned_object:
+            name: "{{ item.key }}"
+            device: "{{ inventory_hostname }}"
+          #family: 4
+          address: "{{ item.value.ipv4.address }}"
+          description: "{{ item.value.ipv4.address }} description"
+        state: present
+      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
+      #when: hostvars[inventory_hostname].tags.Name | regex_search("^arista-2$") and item.value.ipv4.address is defined
+      when: hostvars[inventory_hostname].tags.Name is match("^arista-2$") and item.value.ipv4.address is defined
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push IPv4 addresses data to Netbox (Juniper)
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          assigned_object:
+            name: "{{ item.key }}"
+            device: "{{ inventory_hostname }}"
+          #family: 4
+          address: "{{ item.value.ipv4.address }}"
+          description: "{{ item.value.ipv4.address }} description"
+        state: present
+      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
+      #when: hostvars[inventory_hostname].tags.Name | regex_search("^juniper-2$") and item.value.ipv4.address is defined
+      when: hostvars[inventory_hostname].tags.Name is match("^juniper-2$") and item.value.ipv4.address is defined
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push VLANs data to Netbox
+      netbox.netbox.netbox_vlan:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          site: "{{ site }}"
+          name: "{{ item.name }}"
+          vid: "{{ item.vlan_id }}"
+        state: present
+      loop: "{{ _facts.ansible_facts.ansible_network_resources.vlans }}"
+      when: _facts.ansible_facts.ansible_network_resources.vlans is defined and item is defined
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push Banner data to Netbox (login_banner config context on {{ site }})
+      netbox.netbox.netbox_config_context:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data:
+          name: "login_banner"
+          description: "login_banner"
+          data: "{{ login_banner }}"
+          sites:
+            - "{{ site }}"
+        state: present
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Push DNS Servers data to Netbox (dns_servers config context on {{ site }})
+      netbox.netbox.netbox_config_context:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data:
+          name: "dns_servers"
+          description: "dns_servers"
+          data: "{{ dns_servers }}"
+          sites:
+            - "{{ site }}"
+        state: present
+      throttle: 1
+      delegate_to: localhost
+
+    - name: Delete Token
+      netbox.netbox.netbox_token:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        data:
+            key: "{{ netbox_token.json.key }}"
+        state: absent
+      run_once: true
+      delegate_to: localhost
