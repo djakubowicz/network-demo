@@ -1,0 +1,204 @@
+# VPC NETBOX
+ec2_vpc_name: VPC_NETBOX
+ec2_vpc_region: us-east-1
+ec2_vpc_cidr: 10.0.0.0/16
+# Subnet
+ec2_subnet_name: Subnet_NETBOX
+ec2_subnet_cidr: 10.0.0.0/24
+ec2_subnet_az: us-east-1a
+# Subnet1
+ec2_subnet_name1: Subnet_NETBOX_ENI1
+ec2_subnet_cidr1: 10.0.1.0/24
+# Subnet2
+ec2_subnet_name2: Subnet_NETBOX_ENI2
+ec2_subnet_cidr2: 10.0.2.0/24
+# Cisco ENIs
+ec2_cisco_eni_name1: ENI_CISCO_NETBOX1
+ec2_cisco_eni_name2: ENI_CISCO_NETBOX2
+# Arista ENIs
+ec2_arista_eni_name1: ENI_ARISTA_NETBOX1
+ec2_arista_eni_name2: ENI_ARISTA_NETBOX2
+# Juniper ENIs
+ec2_juniper_eni_name1: ENI_JUNIPER_NETBOX1
+ec2_juniper_eni_name2: ENI_JUNIPER_NETBOX2
+# IGW
+ec2_igw_name: IGW_NETBOX
+# Route Table
+ec2_rt_name: RT_NETBOX
+# RHEL Rules
+ec2_sg_name: SG_NETBOX
+ec2_sg_rules:
+  - proto: tcp
+    ports:
+      - 80
+      - 443
+      - 22
+      - 830
+      - 8000
+    cidr_ip: 0.0.0.0/0
+    rule_desc: Allow all on ports
+  - proto: icmp
+    icmp_code: -1 # icmp type, -1 = any type
+    icmp_type:  -1 # icmp subtype, -1 = any subtype
+    cidr_ip: 0.0.0.0/0
+    rule_desc: Allow all ICMP
+eda_port: 6000
+
+# NETBOX
+# AMI
+ec2_netbox_image_name: "Arara Solutions - Ubuntu 22.04 - NetBox community - v0224-prod-jz3khonabosm6"
+ec2_netbox_image_id: ami-0d0dff5040aeeaf7f
+# Volumes
+ec2_netbox_volumes:
+  - device_name: /dev/sda1
+    ebs:
+      volume_type: gp2
+      volume_size: 32
+      delete_on_termination: true
+      encrypted: false
+# Flavour 
+ec2_netbox_flavor_name: t3.large
+# Key Pair
+ec2_netbox_key_name: "KeyPair-Virginia"
+# Instance
+ec2_netbox_instance_name: netbox-1
+
+ec2_netbox_user: "{{ ansible_user }}"
+ec2_netbox_pass: "{{ ansible_password }}"
+
+# ec2-user
+
+site: aws
+
+# CISCO
+# https://www.cisco.com/c/en/us/td/docs/routers/C8000V/AWS/deploying-c8000v-on-amazon-web-services/deploy-c8000v-on-amazon-web-services.html
+# AMI
+ec2_cisco_image_name: "Cisco-C8K-PAYG-ESS-17.15.02a-0973be0f-17dc-43c1-9677-13348bbfe587"
+ec2_cisco_image_id: ami-070b9ff0a5ff52017
+# Volumes
+ec2_cisco_volumes:
+  - device_name: /dev/xvda
+    ebs:
+      volume_type: gp2
+      volume_size: 16
+      delete_on_termination: true
+      encrypted: false
+# Flavour 
+ec2_cisco_flavor_name: t3.medium
+# Key Pair
+ec2_cisco_key_name: "KeyPair-Virginia"
+# Instance
+ec2_cisco_instance_name: cisco-2
+
+# ec2-user
+ec2_cisco_user: "{{ ansible_user }}"
+ec2_cisco_pass: "{{ ansible_password }}"
+
+# Initial Provisioning
+# cisco_vlans:
+#   - name: Vlan10
+#     vlan_id: 10
+#     state: active
+#   - name: Vlan20
+#     vlan_id: 20
+#     state: active
+# cisco_l2_interfaces:
+#   - name: VirtualPortGroup0
+#     mode: access
+#     access:
+#       vlan: 10
+#   - name: GigabitEthernet2
+#     mode: access
+#     access:
+#       vlan: 20
+# cisco_l3_interfaces: 
+#   - name: VirtualPortGroup0
+#     ipv4:
+#     - address: 10.1.2.3/24
+#   - name: GigabitEthernet2
+#     ipv4:
+#     - address: 10.2.3.4/24
+
+# ARISTA
+# AMI
+ec2_arista_image_name: "CloudEOS4.32.2F-971505ec-86ee-48a7-a33b-54295288e797"
+ec2_arista_image_id: ami-0f3d624fef6d9acf3
+# Volumes
+ec2_arista_volumes:
+  - device_name: /dev/xvda
+    ebs:
+      volume_type: gp2
+      volume_size: 8
+      delete_on_termination: true
+      encrypted: false
+# Flavour 
+ec2_arista_flavor_name: c5.xlarge
+# Key Pair
+ec2_arista_key_name: "KeyPair-Virginia"
+# Instance
+ec2_arista_instance_name: arista-2
+
+# ec2-user
+ec2_arista_user: "{{ ansible_user }}"
+ec2_arista_pass: "{{ ansible_password }}"
+
+# Initial Provisioning
+login_banner: |
+  {
+    "login_banner": "This is my Login Banner, set by Ansible Netbox v1"
+  }
+
+dns_servers: |
+  {
+    "dns_servers": [ "8.8.8.8", "8.8.8.9" ]
+  }
+
+# arista_vlans:
+#   - name: Vlan10
+#     vlan_id: 10
+#     state: active
+#   - name: Vlan20
+#     vlan_id: 20
+#     state: active
+# arista_l2_interfaces:
+#   - name: Ethernet2
+#     mode: access
+#     access:
+#       vlan: 10
+#   - name: Ethernet3
+#     mode: access
+#     access:
+#       vlan: 20
+# arista_l3_interfaces: 
+#   - name: Ethernet2
+#     ipv4:
+#     - address: 10.3.4.5/24
+#   - name: Ethernet3
+#     ipv4:
+#     - address: 10.4.5.6/24
+
+
+# JUNIPER
+# AMI
+#ec2_juniper_image_name: "junos-vsrx3-x86-64-24.2R2.18-newlic-appsec--prod-8987d154-c3e3-411e-8f38-aecdd80e529f"
+#ec2_juniper_image_id: ami-05ef9849ca62c0e89
+ec2_juniper_image_name: "junos-vsrx3-x86-64-*-pmtlic-appsec--prod-*"
+ec2_juniper_image_id: ami-0e1c9976248c25760
+# Volumes
+ec2_juniper_volumes:
+  - device_name: /dev/xvda
+    ebs:
+      volume_type: gp2
+      volume_size: 8
+      delete_on_termination: true
+      encrypted: false
+# Flavour 
+ec2_juniper_flavor_name: c5.large
+# Key Pair
+ec2_juniper_key_name: "KeyPair-Virginia"
+# Instance
+ec2_juniper_instance_name: juniper-2
+
+# ec2-user / ?
+ec2_juniper_user: "{{ ansible_user }}"
+ec2_juniper_pass: "{{ ansible_password }}"
