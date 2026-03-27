@@ -1432,3 +1432,16 @@
       loop_control:
         label: "{{ item.item.item.name }}"
       when: item.status != 201
+
+    - name: Vérifier les endpoints disponibles
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/"
+        method: GET
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+        return_content: true
+      register: api_endpoints
+
+    - name: Afficher les endpoints
+      ansible.builtin.debug:
+        msg: "{{ api_endpoints.json }}"
