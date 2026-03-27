@@ -107,8 +107,11 @@
 
     l2vpns:
       - name: VXLAN-PROD
+        type: vxlan
       - name: VXLAN-DMZ
+        type: vxlan
       - name: MPLS-L2-BACKUP
+        type: mpls-evpn
 
     tunnels:
       - name: VPN-PAR-LYO-01
@@ -423,6 +426,7 @@
         netbox_token: "{{ netbox_token }}"
         data:
           name: "{{ item.name }}"
+          type: "{{ item.type }}"
         state: absent
       loop: "{{ l2vpns }}"
 
