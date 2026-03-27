@@ -12,7 +12,7 @@
     - name: Push Manufacturer to Netbox
       netbox.netbox.netbox_manufacturer:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
+        netbox_token: "{{ netbox_token }}"
         validate_certs: no
         data: 
           name: "arista"
