@@ -1297,7 +1297,6 @@
         data:
           prefix: "{{ item.prefix }}"
           description: "{{ item.description }}"
-          site: "{{ item.site | default(omit) }}"
           status: "{{ item.status }}"
           vrf: "{{ item.vrf | default(omit) }}"
           vlan: "{{ item.vlan | default(omit) }}"
