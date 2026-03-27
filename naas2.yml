@@ -291,19 +291,15 @@
       - name: Cisco IOS-XE
         slug: cisco-ios-xe
         manufacturer: Cisco
-        napalm_driver: ios
       - name: Cisco NX-OS
         slug: cisco-nx-os
         manufacturer: Cisco
-        napalm_driver: nxos
       - name: Juniper Junos
         slug: juniper-junos
         manufacturer: Juniper
-        napalm_driver: junos
       - name: Arista EOS
         slug: arista-eos
         manufacturer: Arista
-        napalm_driver: eos
       - name: PAN-OS
         slug: pan-os
         manufacturer: Palo Alto Networks
