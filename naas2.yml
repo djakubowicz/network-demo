@@ -1390,34 +1390,34 @@
         state: present
       loop: "{{ ip_addresses }}"
 
-- name: Récupérer les IDs des devices pour les services
-  ansible.builtin.uri:
-    url: "{{ netbox_url }}/api/dcim/devices/?name={{ item.device }}"
-    method: GET
-    headers:
-      Authorization: "Token {{ netbox_token }}"
-    return_content: true
-  register: device_lookup
-  loop: "{{ services }}"
-  loop_control:
-    label: "{{ item.device }}"
-
-- name: Créer les services via API REST (NetBox 4.3.7)
-  ansible.builtin.uri:
-    url: "{{ netbox_url }}/api/dcim/services/"
-    method: POST
-    headers:
-      Authorization: "Token {{ netbox_token }}"
-      Content-Type: "application/json"
-    body_format: json
-    body:
-      name: "{{ item.item.name }}"
-      protocol: "{{ item.item.protocol }}"
-      ports: "{{ item.item.ports }}"
-      description: "{{ item.item.description }}"
-      parent_object_type: "dcim.device"
-      parent_object_id: "{{ item.json.results[0].id }}"
-    status_code: [200, 201]
-  loop: "{{ device_lookup.results }}"
-  loop_control:
-    label: "{{ item.item.device }} - {{ item.item.name }}"
+    - name: Récupérer les IDs des devices pour les services
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/dcim/devices/?name={{ item.device }}"
+        method: GET
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+        return_content: true
+      register: device_lookup
+      loop: "{{ services }}"
+      loop_control:
+        label: "{{ item.device }}"
+    
+    - name: Créer les services via API REST (NetBox 4.3.7)
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/dcim/services/"
+        method: POST
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ item.item.name }}"
+          protocol: "{{ item.item.protocol }}"
+          ports: "{{ item.item.ports }}"
+          description: "{{ item.item.description }}"
+          parent_object_type: "dcim.device"
+          parent_object_id: "{{ item.json.results[0].id }}"
+        status_code: [200, 201]
+      loop: "{{ device_lookup.results }}"
+      loop_control:
+        label: "{{ item.item.device }} - {{ item.item.name }}"
