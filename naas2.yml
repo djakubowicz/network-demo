@@ -1187,7 +1187,7 @@
           slug: "{{ item.slug }}"
           status: "{{ item.status }}"
           region: "{{ item.region }}"
-          group: "{{ item.group }}"
+          site_group: "{{ item.group }}"
           description: "{{ item.description }}"
           physical_address: "{{ item.physical_address }}"
           time_zone: "{{ item.time_zone }}"
