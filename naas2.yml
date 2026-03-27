@@ -758,21 +758,40 @@
     # ============================================================
     # PREFIXES
     # ============================================================
-    prefixes:
+    prefixes_containers:
       # Supernets
       - prefix: 10.0.0.0/8
         description: "Espace adressage global privé"
         status: container
+        
       - prefix: 172.16.0.0/12
         description: "Espace adressage OOB"
         status: container
-
-      # Paris DC1
+            
       - prefix: 10.10.0.0/16
         description: "Paris DC1 - Global"
         site: Paris-DC1
         status: container
         vrf: PROD
+
+      - prefix: 10.20.0.0/16
+        description: "Lyon DC2 - Global"
+        site: Lyon-DC2
+        status: container
+        vrf: PROD
+      
+      - prefix: 10.30.0.0/16
+        description: "Marseille DC3 - Global"
+        site: Marseille-DC3
+        status: container
+        vrf: PROD
+      
+      - prefix: 172.16.0.0/16
+        description: "OOB Global"
+        status: container
+        
+    prefixes_actives:
+      # Paris DC1
       - prefix: 10.10.100.0/24
         description: "Paris DC1 - MGMT"
         site: Paris-DC1
@@ -829,11 +848,6 @@
         vlan: 700
 
       # Lyon DC2
-      - prefix: 10.20.0.0/16
-        description: "Lyon DC2 - Global"
-        site: Lyon-DC2
-        status: container
-        vrf: PROD
       - prefix: 10.20.100.0/24
         description: "Lyon DC2 - MGMT"
         site: Lyon-DC2
@@ -866,11 +880,6 @@
         vlan: 500
 
       # Marseille DC3
-      - prefix: 10.30.0.0/16
-        description: "Marseille DC3 - Global"
-        site: Marseille-DC3
-        status: container
-        vrf: PROD
       - prefix: 10.30.100.0/24
         description: "Marseille DC3 - MGMT"
         site: Marseille-DC3
@@ -891,9 +900,6 @@
         vlan: 300
 
       # OOB Management
-      - prefix: 172.16.0.0/16
-        description: "OOB Global"
-        status: container
       - prefix: 172.16.10.0/24
         description: "OOB Paris DC1"
         site: Paris-DC1
@@ -1290,7 +1296,7 @@
         state: present
       loop: "{{ vlans }}"
 
-    - name: Créer les prefixes sans VLAN
+    - name: Créer les prefixes sans VLAN ni site
       netbox.netbox.netbox_prefix:
         netbox_url: "{{ netbox_url }}"
         netbox_token: "{{ netbox_token }}"
@@ -1298,13 +1304,11 @@
           prefix: "{{ item.prefix }}"
           description: "{{ item.description }}"
           status: "{{ item.status }}"
-          site: "{{ item.site | default(omit) }}"
           vrf: "{{ item.vrf | default(omit) }}"
         state: present
-      loop: "{{ prefixes }}"
-      when: item.vlan is not defined
-    
-    - name: Créer les prefixes
+      loop: "{{ prefixes_containers }}"
+
+    - name: Créer les prefixes actifs sans VLAN
       netbox.netbox.netbox_prefix:
         netbox_url: "{{ netbox_url }}"
         netbox_token: "{{ netbox_token }}"
@@ -1312,12 +1316,27 @@
           prefix: "{{ item.prefix }}"
           description: "{{ item.description }}"
           status: "{{ item.status }}"
+          site: "{{ item.site }}"
+          vrf: "{{ item.vrf | default(omit) }}"
+        state: present
+      loop: "{{ prefixes_active }}"
+      when: item.vlan is not defined
+      
+    - name: Créer les prefixes actifs avec vlan
+      netbox.netbox.netbox_prefix:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          prefix: "{{ item.prefix }}"
+          description: "{{ item.description }}"
+          status: "{{ item.status }}"
+          site: "{{ item.site }}"
           vrf: "{{ item.vrf | default(omit) }}"
           vlan:
              vid: "{{ item.vlan }}"
              site: "{{ item.site }}"
         state: present
-      loop: "{{ prefixes }}"
+      loop: "{{ prefixes_active }}"
       when: item.vlan is defined
 
     - name: Créer les devices
