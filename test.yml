@@ -4,6 +4,10 @@
   gather_facts: false
   vars_files: vars/main.yml
   vars:
+    manufacturers:
+      - Cisco
+      - Juniper
+      - Arista
     ansible_connection: local
     netbox_url: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
     netbox_token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
@@ -15,9 +19,9 @@
         netbox_token: "{{ netbox_token }}"
         validate_certs: no
         data: 
-          name: "arista,juniper,cisco"
+          name: "{{ itenms }}"
         state: present
-      throttle: 1
+      loop: "{{ manufacturers }}"
       delegate_to: localhost
   
     - name: Push site data to Netbox
