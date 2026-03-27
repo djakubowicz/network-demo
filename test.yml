@@ -1,0 +1,25 @@
+---
+- name: Push to Netbox
+  connection: network_cli
+  hosts: sites_cisco-live-emea
+  gather_facts: false
+  vars_files: vars/main.yml
+  vars:
+    ansible_connection: local
+    netbox_url: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
+    netbox_token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+
+  tasks:
+    - name: Push site data to Netbox
+      netbox.netbox.netbox_site:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token.json.key }}"
+        validate_certs: no
+        data: 
+          name: "{{ site }}"
+          slug: "{{ site }}"
+          description: "Site located in {{ site }}"
+          status: Active
+        state: present
+      run_once: true
+      delegate_to: localhost
