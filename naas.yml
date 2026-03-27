@@ -1,251 +1,566 @@
 ---
-- name: Push to Netbox
-  connection: network_cli
-  hosts: sites_cisco-live-emea
-  gather_facts: false
+- name: Network as Code - Infrastructure complète NetBox
   vars_files: vars/main.yml
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
   vars:
-    ansible_connection: local
     netbox_url: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
     netbox_token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
 
+    # ============================================================
+    # MANUFACTURERS & DEVICE TYPES
+    # ============================================================
+    manufacturers_and_devices:
+      - manufacturer: Cisco
+        device_types:
+          - model: Catalyst 9300-24P
+            slug: catalyst-9300-24p
+            u_height: 1
+            is_full_depth: true
+          - model: ASR 1001-X
+            slug: asr-1001-x
+            u_height: 1
+            is_full_depth: true
+          - model: Nexus 9336C-FX2
+            slug: nexus-9336c-fx2
+            u_height: 1
+            is_full_depth: true
+
+      - manufacturer: Juniper
+        device_types:
+          - model: EX4300-24P
+            slug: ex4300-24p
+            u_height: 1
+            is_full_depth: true
+          - model: MX204
+            slug: mx204
+            u_height: 2
+            is_full_depth: true
+          - model: SRX345
+            slug: srx345
+            u_height: 1
+            is_full_depth: true
+
+      - manufacturer: Arista
+        device_types:
+          - model: DCS-7050CX3-32S
+            slug: dcs-7050cx3-32s
+            u_height: 1
+            is_full_depth: true
+          - model: DCS-7280CR3-32P4
+            slug: dcs-7280cr3-32p4
+            u_height: 1
+            is_full_depth: true
+
+      - manufacturer: Palo Alto Networks
+        device_types:
+          - model: PA-3220
+            slug: pa-3220
+            u_height: 1
+            is_full_depth: true
+          - model: PA-5220
+            slug: pa-5220
+            u_height: 2
+            is_full_depth: true
+
+      - manufacturer: F5
+        device_types:
+          - model: BIG-IP i4800
+            slug: big-ip-i4800
+            u_height: 2
+            is_full_depth: true
+
+    # ============================================================
+    # SITES & LOCATIONS
+    # ============================================================
+    sites:
+      - name: Paris-DC1
+        slug: paris-dc1
+        status: active
+        region: Europe
+        description: "Datacenter principal Paris"
+        physical_address: "1 Rue de la Paix, 75001 Paris"
+        time_zone: "Europe/Paris"
+
+      - name: Lyon-DC2
+        slug: lyon-dc2
+        status: active
+        region: Europe
+        description: "Datacenter secondaire Lyon"
+        physical_address: "10 Rue Garibaldi, 69006 Lyon"
+        time_zone: "Europe/Paris"
+
+    # ============================================================
+    # RACKS
+    # ============================================================
+    racks:
+      - name: RACK-PDC1-A01
+        site: Paris-DC1
+        status: active
+        u_height: 42
+        width: 19
+
+      - name: RACK-PDC1-A02
+        site: Paris-DC1
+        status: active
+        u_height: 42
+        width: 19
+
+      - name: RACK-LDC2-A01
+        site: Lyon-DC2
+        status: active
+        u_height: 42
+        width: 19
+
+    # ============================================================
+    # DEVICE ROLES
+    # ============================================================
+    device_roles:
+      - name: Core Router
+        slug: core-router
+        color: aa1409
+        vm_role: false
+
+      - name: Distribution Switch
+        slug: distribution-switch
+        color: f44336
+        vm_role: false
+
+      - name: Access Switch
+        slug: access-switch
+        color: 2196f3
+        vm_role: false
+
+      - name: Firewall
+        slug: firewall
+        color: ff9800
+        vm_role: false
+
+      - name: Load Balancer
+        slug: load-balancer
+        color: 4caf50
+        vm_role: false
+
+      - name: Edge Router
+        slug: edge-router
+        color: 9c27b0
+        vm_role: false
+
+    # ============================================================
+    # PLATFORMS
+    # ============================================================
+    platforms:
+      - name: Cisco IOS-XE
+        slug: cisco-ios-xe
+        manufacturer: Cisco
+
+      - name: Cisco NX-OS
+        slug: cisco-nx-os
+        manufacturer: Cisco
+
+      - name: Juniper Junos
+        slug: juniper-junos
+        manufacturer: Juniper
+
+      - name: Arista EOS
+        slug: arista-eos
+        manufacturer: Arista
+
+      - name: PAN-OS
+        slug: pan-os
+        manufacturer: Palo Alto Networks
+
+      - name: F5 TMOS
+        slug: f5-tmos
+        manufacturer: F5
+
+    # ============================================================
+    # DEVICES
+    # ============================================================
+    devices:
+      # --- Paris DC1 ---
+      - name: PAR-CORE-RTR-01
+        device_type: ASR 1001-X
+        device_role: Core Router
+        platform: Cisco IOS-XE
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 40
+        face: front
+        status: active
+        serial: CSR1001X-001
+        comments: "Core router Paris DC1"
+
+      - name: PAR-CORE-RTR-02
+        device_type: MX204
+        device_role: Core Router
+        platform: Juniper Junos
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 38
+        face: front
+        status: active
+        serial: MX204-002
+        comments: "Core router redondant Paris DC1"
+
+      - name: PAR-DIST-SW-01
+        device_type: Nexus 9336C-FX2
+        device_role: Distribution Switch
+        platform: Cisco NX-OS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 30
+        face: front
+        status: active
+        serial: N9K-001
+        comments: "Distribution switch Paris DC1"
+
+      - name: PAR-DIST-SW-02
+        device_type: DCS-7280CR3-32P4
+        device_role: Distribution Switch
+        platform: Arista EOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 28
+        face: front
+        status: active
+        serial: ARISTA-DCS-002
+        comments: "Distribution switch redondant Paris DC1"
+
+      - name: PAR-ACC-SW-01
+        device_type: Catalyst 9300-24P
+        device_role: Access Switch
+        platform: Cisco IOS-XE
+        site: Paris-DC1
+        rack: RACK-PDC1-A02
+        position: 20
+        face: front
+        status: active
+        serial: C9300-001
+        comments: "Access switch Paris DC1 - Rack A02"
+
+      - name: PAR-ACC-SW-02
+        device_type: EX4300-24P
+        device_role: Access Switch
+        platform: Juniper Junos
+        site: Paris-DC1
+        rack: RACK-PDC1-A02
+        position: 18
+        face: front
+        status: active
+        serial: EX4300-002
+        comments: "Access switch redondant Paris DC1 - Rack A02"
+
+      - name: PAR-FW-01
+        device_type: PA-5220
+        device_role: Firewall
+        platform: PAN-OS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 35
+        face: front
+        status: active
+        serial: PA5220-001
+        comments: "Firewall périmétrique Paris DC1"
+
+      - name: PAR-LB-01
+        device_type: BIG-IP i4800
+        device_role: Load Balancer
+        platform: F5 TMOS
+        site: Paris-DC1
+        rack: RACK-PDC1-A01
+        position: 32
+        face: front
+        status: active
+        serial: F5-I4800-001
+        comments: "Load balancer Paris DC1"
+
+      # --- Lyon DC2 ---
+      - name: LYO-EDGE-RTR-01
+        device_type: SRX345
+        device_role: Edge Router
+        platform: Juniper Junos
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 40
+        face: front
+        status: active
+        serial: SRX345-001
+        comments: "Edge router Lyon DC2"
+
+      - name: LYO-DIST-SW-01
+        device_type: DCS-7050CX3-32S
+        device_role: Distribution Switch
+        platform: Arista EOS
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 30
+        face: front
+        status: active
+        serial: ARISTA-7050-001
+        comments: "Distribution switch Lyon DC2"
+
+      - name: LYO-ACC-SW-01
+        device_type: Catalyst 9300-24P
+        device_role: Access Switch
+        platform: Cisco IOS-XE
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 20
+        face: front
+        status: active
+        serial: C9300-003
+        comments: "Access switch Lyon DC2"
+
+      - name: LYO-FW-01
+        device_type: PA-3220
+        device_role: Firewall
+        platform: PAN-OS
+        site: Lyon-DC2
+        rack: RACK-LDC2-A01
+        position: 35
+        face: front
+        status: active
+        serial: PA3220-001
+        comments: "Firewall périmétrique Lyon DC2"
+
+    # ============================================================
+    # PREFIXES & VLANs
+    # ============================================================
+    vrfs:
+      - name: PROD
+        rd: "65000:100"
+        description: "VRF Production"
+
+      - name: MGMT
+        rd: "65000:999"
+        description: "VRF Management"
+
+    vlans:
+      - name: MGMT
+        vid: 100
+        site: Paris-DC1
+        status: active
+        description: "Management"
+
+      - name: SERVERS-PROD
+        vid: 200
+        site: Paris-DC1
+        status: active
+        description: "Serveurs production"
+
+      - name: SERVERS-DMZ
+        vid: 210
+        site: Paris-DC1
+        status: active
+        description: "Serveurs DMZ"
+
+      - name: USERS
+        vid: 300
+        site: Paris-DC1
+        status: active
+        description: "Utilisateurs"
+
+      - name: MGMT
+        vid: 100
+        site: Lyon-DC2
+        status: active
+        description: "Management Lyon"
+
+      - name: SERVERS-PROD
+        vid: 200
+        site: Lyon-DC2
+        status: active
+        description: "Serveurs production Lyon"
+
+    prefixes:
+      - prefix: 10.0.0.0/8
+        description: "Espace d'adressage global"
+        status: container
+
+      - prefix: 10.10.0.0/16
+        description: "Paris DC1"
+        site: Paris-DC1
+        status: container
+        vrf: PROD
+
+      - prefix: 10.10.100.0/24
+        description: "Management Paris DC1"
+        site: Paris-DC1
+        status: active
+        vrf: MGMT
+
+      - prefix: 10.10.200.0/24
+        description: "Serveurs PROD Paris DC1"
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+
+      - prefix: 10.10.210.0/24
+        description: "DMZ Paris DC1"
+        site: Paris-DC1
+        status: active
+        vrf: PROD
+
+      - prefix: 10.20.0.0/16
+        description: "Lyon DC2"
+        site: Lyon-DC2
+        status: container
+        vrf: PROD
+
+      - prefix: 10.20.100.0/24
+        description: "Management Lyon DC2"
+        site: Lyon-DC2
+        status: active
+        vrf: MGMT
+
+      - prefix: 10.20.200.0/24
+        description: "Serveurs PROD Lyon DC2"
+        site: Lyon-DC2
+        status: active
+        vrf: PROD
+
+  # ============================================================
+  # TASKS
+  # ============================================================
   tasks:
-    - name: Push site data to Netbox
-      netbox.netbox.netbox_site:
-        netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          name: "{{ site }}"
-          slug: "{{ site }}"
-          description: "Site located in {{ site }}"
-          status: Active
-        state: present
-      run_once: true
-      delegate_to: localhost
 
-    - name: Set Manufacturer (Cisco)
-      set_fact:
-        manufacturer: "Cisco"
-      #when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name | regex_search("^cisco-2$")
-      when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name is match("^cisco-2$")
-      delegate_to: localhost
-
-    - name: Set Manufacturer (Arista)
-      set_fact:
-        manufacturer: "Arista"
-      #when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name | regex_search("^arista-2$")
-      when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name is match("^arista-2$")
-      delegate_to: localhost
-
-    - name: Set Manufacturer (Juniper)
-      set_fact:
-        manufacturer: "Juniper"
-      #when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name | regex_search("^juniper-2$")
-      when: hostvars[inventory_hostname].tags is defined and hostvars[inventory_hostname].tags.Name is match("^juniper-2$")
-      delegate_to: localhost
-
-    - name: Push Manufacturer to Netbox
+    # --- Manufacturers ---
+    - name: Créer les manufacturers
       netbox.netbox.netbox_manufacturer:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          name: "{{ manufacturer }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.manufacturer }}"
         state: present
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ manufacturers_and_devices }}"
 
-    - name: Push device type data to Netbox
+    # --- Device Types ---
+    - name: Créer les device types
       netbox.netbox.netbox_device_type:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          model: "{{ _facts.ansible_facts.ansible_net_model | lower }}"
-          manufacturer: "{{ manufacturer }}"
-          slug: "{{ _facts.ansible_facts.ansible_net_model }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          manufacturer: "{{ item.0.manufacturer }}"
+          model: "{{ item.1.model }}"
+          slug: "{{ item.1.slug }}"
+          u_height: "{{ item.1.u_height }}"
+          is_full_depth: "{{ item.1.is_full_depth }}"
         state: present
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ manufacturers_and_devices | subelements('device_types') }}"
 
-    - name: Push devices role data to Netbox
+    # --- Sites ---
+    - name: Créer les sites
+      netbox.netbox.netbox_site:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          status: "{{ item.status }}"
+          description: "{{ item.description }}"
+          physical_address: "{{ item.physical_address }}"
+          time_zone: "{{ item.time_zone }}"
+        state: present
+      loop: "{{ sites }}"
+
+    # --- Racks ---
+    - name: Créer les racks
+      netbox.netbox.netbox_rack:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          site: "{{ item.site }}"
+          status: "{{ item.status }}"
+          u_height: "{{ item.u_height }}"
+          width: "{{ item.width }}"
+        state: present
+      loop: "{{ racks }}"
+
+    # --- Device Roles ---
+    - name: Créer les device roles
       netbox.netbox.netbox_device_role:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          name: "demo"
-        state: present
-      throttle: 1
-      delegate_to: localhost
-
-    - name: Push devices data to Netbox
-      netbox.netbox.netbox_device:
-        netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          name: "{{ inventory_hostname }}"
-          site: "{{ site }}"
-          serial: "{{ _facts.ansible_facts.ansible_net_serialnum }}"
-          device_type: "{{ _facts.ansible_facts.ansible_net_model | lower }}"
-          device_role: "demo"
-          local_context_data: "{{ _facts.ansible_facts.ansible_network_resources }}"
-          comments: "Added by AAP"
-        state: present
-      throttle: 1
-      delegate_to: localhost
-
-    - name: Push interfaces data to Netbox (Cisco)
-      netbox.netbox.netbox_device_interface:
-        netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          device: "{{ inventory_hostname }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
           name: "{{ item.name }}"
-          type: "Virtual"
-          description: "{{ item.name }} description"
+          slug: "{{ item.slug }}"
+          color: "{{ item.color }}"
+          vm_role: "{{ item.vm_role }}"
         state: present
-      loop: "{{ _facts.ansible_facts.ansible_network_resources.interfaces }}"
-      #when: hostvars[inventory_hostname].tags.Name | regex_search("^cisco-2$") and _facts.ansible_facts.ansible_network_resources.interfaces is defined
-      when: hostvars[inventory_hostname].tags.Name is match("^cisco-2$") and _facts.ansible_facts.ansible_network_resources.interfaces is defined
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ device_roles }}"
 
-    - name: Push interfaces data to Netbox (Arista)
-      netbox.netbox.netbox_device_interface:
+    # --- Platforms ---
+    - name: Créer les platforms
+      netbox.netbox.netbox_platform:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          device: "{{ inventory_hostname }}"
-          name: "{{ item.key }}"
-          type: "Virtual"
-          description: "{{ item.key }} description"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          manufacturer: "{{ item.manufacturer }}"
         state: present
-      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
-      #when: hostvars[inventory_hostname].tags.Name | regex_search("^arista-2$")
-      when: hostvars[inventory_hostname].tags.Name is match("^arista-2$")
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ platforms }}"
 
-    - name: Push interfaces data to Netbox (Juniper)
-      netbox.netbox.netbox_device_interface:
+    # --- VRFs ---
+    - name: Créer les VRFs
+      netbox.netbox.netbox_vrf:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          device: "{{ inventory_hostname }}"
-          name: "{{ item.key }}"
-          type: "Virtual"
-          description: "{{ item.key }} description"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          rd: "{{ item.rd }}"
+          description: "{{ item.description }}"
         state: present
-      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
-      #when: hostvars[inventory_hostname].tags.Name | regex_search("^juniper-2$")
-      when: hostvars[inventory_hostname].tags.Name is match("^juniper-2$")
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ vrfs }}"
 
-    - name: Push IPv4 addresses data to Netbox (Cisco)
-      netbox.netbox.netbox_ip_address:
-        netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          assigned_object:
-            name: "{{ item.name }}"
-            device: "{{ inventory_hostname }}"
-          #family: 4
-          address: "{{ item.ipv4[0].address }}"
-          description: "{{ item.ipv4[0].address }} description"
-        state: present
-      loop: "{{ _facts.ansible_facts.ansible_network_resources.l3_interfaces }}"
-      #when: hostvars[inventory_hostname].tags.Name | regex_search("^cisco-2$") and item.ipv4[0].address is defined
-      when: hostvars[inventory_hostname].tags.Name is match("^cisco-2$") and item.ipv4[0].address is defined
-      throttle: 1
-      delegate_to: localhost
-
-    - name: Push IPv4 addresses data to Netbox (Arista)
-      netbox.netbox.netbox_ip_address:
-        netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          assigned_object:
-            name: "{{ item.key }}"
-            device: "{{ inventory_hostname }}"
-          #family: 4
-          address: "{{ item.value.ipv4.address }}"
-          description: "{{ item.value.ipv4.address }} description"
-        state: present
-      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
-      #when: hostvars[inventory_hostname].tags.Name | regex_search("^arista-2$") and item.value.ipv4.address is defined
-      when: hostvars[inventory_hostname].tags.Name is match("^arista-2$") and item.value.ipv4.address is defined
-      throttle: 1
-      delegate_to: localhost
-
-    - name: Push IPv4 addresses data to Netbox (Juniper)
-      netbox.netbox.netbox_ip_address:
-        netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          assigned_object:
-            name: "{{ item.key }}"
-            device: "{{ inventory_hostname }}"
-          #family: 4
-          address: "{{ item.value.ipv4.address }}"
-          description: "{{ item.value.ipv4.address }} description"
-        state: present
-      with_dict: "{{ _facts.ansible_facts.ansible_net_interfaces }}"
-      #when: hostvars[inventory_hostname].tags.Name | regex_search("^juniper-2$") and item.value.ipv4.address is defined
-      when: hostvars[inventory_hostname].tags.Name is match("^juniper-2$") and item.value.ipv4.address is defined
-      throttle: 1
-      delegate_to: localhost
-
-    - name: Push VLANs data to Netbox
+    # --- VLANs ---
+    - name: Créer les VLANs
       netbox.netbox.netbox_vlan:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
-        data: 
-          site: "{{ site }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
           name: "{{ item.name }}"
-          vid: "{{ item.vlan_id }}"
+          vid: "{{ item.vid }}"
+          site: "{{ item.site }}"
+          status: "{{ item.status }}"
+          description: "{{ item.description }}"
         state: present
-      loop: "{{ _facts.ansible_facts.ansible_network_resources.vlans }}"
-      when: _facts.ansible_facts.ansible_network_resources.vlans is defined and item is defined
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ vlans }}"
 
-    - name: Push Banner data to Netbox (login_banner config context on {{ site }})
-      netbox.netbox.netbox_config_context:
+    # --- Prefixes ---
+    - name: Créer les prefixes
+      netbox.netbox.netbox_prefix:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
+        netbox_token: "{{ netbox_token }}"
         data:
-          name: "login_banner"
-          description: "login_banner"
-          data: "{{ login_banner }}"
-          sites:
-            - "{{ site }}"
+          prefix: "{{ item.prefix }}"
+          description: "{{ item.description }}"
+          site: "{{ item.site | default(omit) }}"
+          status: "{{ item.status }}"
+          vrf: "{{ item.vrf | default(omit) }}"
         state: present
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ prefixes }}"
 
-    - name: Push DNS Servers data to Netbox (dns_servers config context on {{ site }})
-      netbox.netbox.netbox_config_context:
+    # --- Devices ---
+    - name: Créer les devices
+      netbox.netbox.netbox_device:
         netbox_url: "{{ netbox_url }}"
-        netbox_token: "{{ netbox_token.json.key }}"
-        validate_certs: no
+        netbox_token: "{{ netbox_token }}"
         data:
-          name: "dns_servers"
-          description: "dns_servers"
-          data: "{{ dns_servers }}"
-          sites:
-            - "{{ site }}"
+          name: "{{ item.name }}"
+          device_type: "{{ item.device_type }}"
+          device_role: "{{ item.device_role }}"
+          platform: "{{ item.platform }}"
+          site: "{{ item.site }}"
+          rack: "{{ item.rack }}"
+          position: "{{ item.position }}"
+          face: "{{ item.face }}"
+          status: "{{ item.status }}"
+          serial: "{{ item.serial }}"
+          comments: "{{ item.comments }}"
         state: present
-      throttle: 1
-      delegate_to: localhost
+      loop: "{{ devices }}"
