@@ -1316,7 +1316,7 @@
           prefix: "{{ item.prefix }}"
           description: "{{ item.description }}"
           status: "{{ item.status }}"
-          site: "{{ item.site }}"
+          site: "{{ item.site | default(omit) }}"
           vrf: "{{ item.vrf | default(omit) }}"
         state: present
       loop: "{{ prefixes_active }}"
@@ -1330,7 +1330,7 @@
           prefix: "{{ item.prefix }}"
           description: "{{ item.description }}"
           status: "{{ item.status }}"
-          site: "{{ item.site }}"
+          site: "{{ item.site | default(omit) }}"
           vrf: "{{ item.vrf | default(omit) }}"
           vlan:
              vid: "{{ item.vlan }}"
