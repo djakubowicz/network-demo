@@ -985,19 +985,16 @@
     # ============================================================
     l2vpns:
       - name: VXLAN-PROD
-        slug: vxlan-prod
         type: vxlan
         identifier: 10200
         description: "VXLAN overlay production inter-DC"
 
       - name: VXLAN-DMZ
-        slug: vxlan-dmz
         type: vxlan
         identifier: 10210
         description: "VXLAN overlay DMZ inter-DC"
 
       - name: MPLS-L2-BACKUP
-        slug: mpls-l2-backup
         type: mpls-evpn
         identifier: 500
         description: "MPLS EVPN circuit backup inter-DC"
