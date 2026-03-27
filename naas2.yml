@@ -1417,7 +1417,18 @@
           description: "{{ item.item.description }}"
           parent_object_type: "dcim.device"
           parent_object_id: "{{ item.json.results[0].id }}"
-        status_code: [200, 201]
+        status_code: [200, 201, 400, 404, 500]
+        return_content: true
+      register: service_result
       loop: "{{ device_lookup.results }}"
       loop_control:
         label: "{{ item.item.device }} - {{ item.item.name }}"
+      ignore_errors: true
+
+    - name: Afficher les erreurs de création de services
+      ansible.builtin.debug:
+        msg: "{{ item.content }}"
+      loop: "{{ service_result.results }}"
+      loop_control:
+        label: "{{ item.item.item.name }}"
+      when: item.status != 201
