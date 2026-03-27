@@ -15,7 +15,7 @@
         netbox_token: "{{ netbox_token }}"
         validate_certs: no
         data: 
-          name: "arista"
+          name: "arista,juniper,cisco"
         state: present
       throttle: 1
       delegate_to: localhost
