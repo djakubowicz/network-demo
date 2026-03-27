@@ -324,7 +324,7 @@
         platform: Cisco IOS-XE
         site: Paris-DC1
         rack: RACK-PDC1-A01
-        position: 40
+        position: 41
         face: front
         status: active
         serial: CSR1001X-001
@@ -347,7 +347,7 @@
         platform: Cisco NX-OS
         site: Paris-DC1
         rack: RACK-PDC1-A01
-        position: 30
+        position: 31
         face: front
         status: active
         serial: N9K-SPINE-001
@@ -358,7 +358,7 @@
         platform: Arista EOS
         site: Paris-DC1
         rack: RACK-PDC1-A01
-        position: 28
+        position: 30
         face: front
         status: active
         serial: ARISTA-SPINE-001
@@ -437,7 +437,7 @@
         platform: PAN-OS
         site: Paris-DC1
         rack: RACK-PDC1-A01
-        position: 20
+        position: 19
         face: front
         status: active
         serial: PA7080-001
@@ -448,7 +448,7 @@
         platform: FortiOS
         site: Paris-DC1
         rack: RACK-PDC1-A01
-        position: 18
+        position: 17
         face: front
         status: active
         serial: FG3200F-001
@@ -459,7 +459,7 @@
         platform: F5 TMOS
         site: Paris-DC1
         rack: RACK-PDC1-A01
-        position: 14
+        position: 15
         face: front
         status: active
         serial: F5-I10800-001
@@ -470,7 +470,7 @@
         platform: F5 TMOS
         site: Paris-DC1
         rack: RACK-PDC1-A01
-        position: 12
+        position: 13
         face: front
         status: active
         serial: F5-I4800-001
