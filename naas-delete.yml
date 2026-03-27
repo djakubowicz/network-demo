@@ -1,0 +1,629 @@
+---
+- name: Network as Code - Suppression complète NetBox (mode full)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    netbox_url: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
+    netbox_token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+
+    devices:
+      - name: PAR-CORE-RTR-01
+        site: Paris-DC1
+      - name: PAR-CORE-RTR-02
+        site: Paris-DC1
+      - name: PAR-SPINE-SW-01
+        site: Paris-DC1
+      - name: PAR-SPINE-SW-02
+        site: Paris-DC1
+      - name: PAR-LEAF-SW-01
+        site: Paris-DC1
+      - name: PAR-LEAF-SW-02
+        site: Paris-DC1
+      - name: PAR-LEAF-SW-03
+        site: Paris-DC1
+      - name: PAR-ACC-SW-01
+        site: Paris-DC1
+      - name: PAR-ACC-SW-02
+        site: Paris-DC1
+      - name: PAR-ACC-SW-03
+        site: Paris-DC1
+      - name: PAR-FW-01
+        site: Paris-DC1
+      - name: PAR-FW-02
+        site: Paris-DC1
+      - name: PAR-LB-01
+        site: Paris-DC1
+      - name: PAR-LB-02
+        site: Paris-DC1
+      - name: PAR-SRV-01
+        site: Paris-DC1
+      - name: PAR-SRV-02
+        site: Paris-DC1
+      - name: LYO-EDGE-RTR-01
+        site: Lyon-DC2
+      - name: LYO-DIST-SW-01
+        site: Lyon-DC2
+      - name: LYO-DIST-SW-02
+        site: Lyon-DC2
+      - name: LYO-ACC-SW-01
+        site: Lyon-DC2
+      - name: LYO-FW-01
+        site: Lyon-DC2
+      - name: LYO-FW-02
+        site: Lyon-DC2
+      - name: LYO-SRV-01
+        site: Lyon-DC2
+      - name: MRS-EDGE-RTR-01
+        site: Marseille-DC3
+      - name: MRS-DIST-SW-01
+        site: Marseille-DC3
+      - name: MRS-FW-01
+        site: Marseille-DC3
+      - name: MRS-ACC-SW-01
+        site: Marseille-DC3
+
+    services:
+      - device: PAR-CORE-RTR-01
+        name: BGP
+        protocol: tcp
+        ports: [179]
+      - device: PAR-CORE-RTR-01
+        name: SNMP
+        protocol: udp
+        ports: [161]
+      - device: PAR-FW-01
+        name: HTTPS-MGMT
+        protocol: tcp
+        ports: [443]
+      - device: PAR-LB-01
+        name: HTTPS
+        protocol: tcp
+        ports: [443, 80]
+      - device: LYO-EDGE-RTR-01
+        name: BGP
+        protocol: tcp
+        ports: [179]
+
+    ip_addresses:
+      - address: 10.255.0.1/32
+        vrf: PROD
+      - address: 10.255.0.2/32
+        vrf: PROD
+      - address: 10.255.0.3/32
+        vrf: PROD
+      - address: 10.255.0.4/32
+        vrf: PROD
+      - address: 10.255.0.10/32
+        vrf: PROD
+      - address: 10.255.0.20/32
+        vrf: PROD
+      - address: 172.16.10.1/24
+      - address: 172.16.10.2/24
+      - address: 172.16.10.3/24
+      - address: 172.16.20.1/24
+      - address: 172.16.30.1/24
+
+    l2vpns:
+      - name: VXLAN-PROD
+      - name: VXLAN-DMZ
+      - name: MPLS-L2-BACKUP
+
+    tunnels:
+      - name: VPN-PAR-LYO-01
+        encapsulation: ipsec-tunnel
+      - name: VPN-PAR-MRS-01
+        encapsulation: ipsec-tunnel
+      - name: VPN-LYO-MRS-01
+        encapsulation: ipsec-tunnel
+      - name: GRE-PAR-LYO-01
+        encapsulation: gre
+
+    prefixes_active:
+      - prefix: 10.10.100.0/24
+        vrf: MGMT
+      - prefix: 10.10.200.0/24
+        vrf: PROD
+      - prefix: 10.10.210.0/24
+        vrf: DMZ
+      - prefix: 10.10.220.0/24
+        vrf: PROD
+      - prefix: 10.10.30.0/24
+        vrf: PROD
+      - prefix: 10.10.40.0/24
+        vrf: VOIP
+      - prefix: 10.10.50.0/24
+        vrf: BACKUP
+      - prefix: 10.10.60.0/24
+        vrf: PROD
+      - prefix: 10.10.70.0/24
+        vrf: PROD
+      - prefix: 10.20.100.0/24
+        vrf: MGMT
+      - prefix: 10.20.200.0/24
+        vrf: PROD
+      - prefix: 10.20.210.0/24
+        vrf: DMZ
+      - prefix: 10.20.30.0/24
+        vrf: PROD
+      - prefix: 10.20.50.0/24
+        vrf: BACKUP
+      - prefix: 10.30.100.0/24
+        vrf: MGMT
+      - prefix: 10.30.200.0/24
+        vrf: PROD
+      - prefix: 10.30.30.0/24
+        vrf: PROD
+      - prefix: 172.16.10.0/24
+      - prefix: 172.16.20.0/24
+      - prefix: 172.16.30.0/24
+      - prefix: 10.255.0.0/24
+        vrf: PROD
+      - prefix: 10.254.0.0/24
+        vrf: PROD
+
+    prefixes_containers:
+      - prefix: 10.10.0.0/16
+        vrf: PROD
+      - prefix: 10.20.0.0/16
+        vrf: PROD
+      - prefix: 10.30.0.0/16
+        vrf: PROD
+      - prefix: 172.16.0.0/16
+      - prefix: 172.16.0.0/12
+      - prefix: 10.0.0.0/8
+
+    vlans:
+      - name: MGMT
+        vid: 100
+        site: Paris-DC1
+      - name: SERVERS-PROD
+        vid: 200
+        site: Paris-DC1
+      - name: SERVERS-DMZ
+        vid: 210
+        site: Paris-DC1
+      - name: SERVERS-DEV
+        vid: 220
+        site: Paris-DC1
+      - name: USERS
+        vid: 300
+        site: Paris-DC1
+      - name: VOIP
+        vid: 400
+        site: Paris-DC1
+      - name: BACKUP
+        vid: 500
+        site: Paris-DC1
+      - name: VMOTION
+        vid: 600
+        site: Paris-DC1
+      - name: STORAGE
+        vid: 700
+        site: Paris-DC1
+      - name: NATIVE
+        vid: 999
+        site: Paris-DC1
+      - name: MGMT
+        vid: 100
+        site: Lyon-DC2
+      - name: SERVERS-PROD
+        vid: 200
+        site: Lyon-DC2
+      - name: SERVERS-DMZ
+        vid: 210
+        site: Lyon-DC2
+      - name: USERS
+        vid: 300
+        site: Lyon-DC2
+      - name: BACKUP
+        vid: 500
+        site: Lyon-DC2
+      - name: MGMT
+        vid: 100
+        site: Marseille-DC3
+      - name: SERVERS-PROD
+        vid: 200
+        site: Marseille-DC3
+      - name: USERS
+        vid: 300
+        site: Marseille-DC3
+
+    vlan_groups:
+      - name: Paris-DC1-VLANs
+        slug: paris-dc1-vlans
+        site: Paris-DC1
+      - name: Lyon-DC2-VLANs
+        slug: lyon-dc2-vlans
+        site: Lyon-DC2
+      - name: Marseille-DC3-VLANs
+        slug: marseille-dc3-vlans
+        site: Marseille-DC3
+
+    vrfs:
+      - name: PROD
+      - name: MGMT
+      - name: DMZ
+      - name: BACKUP
+      - name: VOIP
+
+    route_targets:
+      - name: "65000:100"
+      - name: "65000:200"
+      - name: "65000:300"
+      - name: "65000:400"
+      - name: "65000:999"
+
+    asns:
+      - asn: 65001
+        rir: RFC6996
+      - asn: 65002
+        rir: RFC6996
+      - asn: 65003
+        rir: RFC6996
+      - asn: 65100
+        rir: RFC6996
+
+    manufacturers_and_devices:
+      - manufacturer: Cisco
+        device_types:
+          - model: Catalyst 9300-24P
+          - model: Catalyst 9500-16X
+          - model: ASR 1001-X
+          - model: Nexus 9336C-FX2
+          - model: Catalyst 9200-48P
+      - manufacturer: Juniper
+        device_types:
+          - model: EX4300-24P
+          - model: EX4650-48Y
+          - model: MX204
+          - model: MX10003
+          - model: SRX345
+          - model: SRX4600
+      - manufacturer: Arista
+        device_types:
+          - model: DCS-7050CX3-32S
+          - model: DCS-7280CR3-32P4
+          - model: DCS-7160-48YC6
+      - manufacturer: Palo Alto Networks
+        device_types:
+          - model: PA-3220
+          - model: PA-5220
+          - model: PA-7080
+      - manufacturer: F5
+        device_types:
+          - model: BIG-IP i4800
+          - model: BIG-IP i10800
+      - manufacturer: Fortinet
+        device_types:
+          - model: FortiGate 600E
+          - model: FortiGate 3200F
+      - manufacturer: HPE
+        device_types:
+          - model: ProLiant DL380 Gen10
+      - manufacturer: Dell
+        device_types:
+          - model: PowerEdge R750
+
+    device_roles:
+      - name: Core Router
+      - name: Edge Router
+      - name: Distribution Switch
+      - name: Access Switch
+      - name: Spine Switch
+      - name: Leaf Switch
+      - name: Firewall
+      - name: Load Balancer
+      - name: Server
+
+    platforms:
+      - name: Cisco IOS-XE
+      - name: Cisco NX-OS
+      - name: Juniper Junos
+      - name: Arista EOS
+      - name: PAN-OS
+      - name: F5 TMOS
+      - name: FortiOS
+      - name: Linux
+
+    racks:
+      - name: RACK-PDC1-A01
+        site: Paris-DC1
+      - name: RACK-PDC1-A02
+        site: Paris-DC1
+      - name: RACK-PDC1-B01
+        site: Paris-DC1
+      - name: RACK-LDC2-A01
+        site: Lyon-DC2
+      - name: RACK-MDC3-A01
+        site: Marseille-DC3
+
+    locations:
+      - name: Salle-A
+        slug: paris-dc1-salle-a
+        site: Paris-DC1
+      - name: Salle-B
+        slug: paris-dc1-salle-b
+        site: Paris-DC1
+      - name: Salle-A
+        slug: lyon-dc2-salle-a
+        site: Lyon-DC2
+      - name: Salle-A
+        slug: marseille-dc3-salle-a
+        site: Marseille-DC3
+
+    sites:
+      - name: Paris-DC1
+      - name: Lyon-DC2
+      - name: Marseille-DC3
+
+    site_groups:
+      - name: Production
+      - name: DR
+
+    regions:
+      - name: France
+      - name: Europe
+
+  tasks:
+
+    # 1. Services en premier (dépendent des devices)
+    - name: Récupérer les IDs des devices pour suppression des services
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/dcim/devices/?name={{ item.device }}"
+        method: GET
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+        return_content: true
+      register: device_lookup
+      loop: "{{ services }}"
+      loop_control:
+        label: "{{ item.device }}"
+
+    - name: Récupérer les IDs des services
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/ipam/services/?name={{ item.item.name }}&device_id={{ item.json.results[0].id }}"
+        method: GET
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+        return_content: true
+      register: service_lookup
+      loop: "{{ device_lookup.results }}"
+      loop_control:
+        label: "{{ item.item.device }} - {{ item.item.name }}"
+
+    - name: Supprimer les services
+      ansible.builtin.uri:
+        url: "{{ netbox_url }}/api/ipam/services/{{ item.json.results[0].id }}/"
+        method: DELETE
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+        status_code: [204, 404]
+      loop: "{{ service_lookup.results }}"
+      loop_control:
+        label: "{{ item.item.item.name }}"
+      when: item.json.results | length > 0
+
+    # 2. IP Addresses
+    - name: Supprimer les adresses IP
+      netbox.netbox.netbox_ip_address:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          address: "{{ item.address }}"
+          vrf: "{{ item.vrf | default(omit) }}"
+        state: absent
+      loop: "{{ ip_addresses }}"
+
+    # 3. L2VPNs
+    - name: Supprimer les L2VPNs
+      netbox.netbox.netbox_l2vpn:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ l2vpns }}"
+
+    # 4. Tunnels
+    - name: Supprimer les tunnels VPN
+      netbox.netbox.netbox_tunnel:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          encapsulation: "{{ item.encapsulation }}"
+        state: absent
+      loop: "{{ tunnels }}"
+
+    # 5. Devices
+    - name: Supprimer les devices
+      netbox.netbox.netbox_device:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          site: "{{ item.site }}"
+        state: absent
+      loop: "{{ devices }}"
+
+    # 6. Prefixes actifs (enfants avant conteneurs)
+    - name: Supprimer les prefixes actifs
+      netbox.netbox.netbox_prefix:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          prefix: "{{ item.prefix }}"
+          vrf: "{{ item.vrf | default(omit) }}"
+        state: absent
+      loop: "{{ prefixes_active }}"
+
+    # 7. Prefixes conteneurs
+    - name: Supprimer les prefixes conteneurs
+      netbox.netbox.netbox_prefix:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          prefix: "{{ item.prefix }}"
+          vrf: "{{ item.vrf | default(omit) }}"
+        state: absent
+      loop: "{{ prefixes_containers }}"
+
+    # 8. VLANs
+    - name: Supprimer les VLANs
+      netbox.netbox.netbox_vlan:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          vid: "{{ item.vid }}"
+          site: "{{ item.site }}"
+        state: absent
+      loop: "{{ vlans }}"
+
+    # 9. VLAN Groups
+    - name: Supprimer les VLAN groups
+      netbox.netbox.netbox_vlan_group:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+        state: absent
+      loop: "{{ vlan_groups }}"
+
+    # 10. VRFs
+    - name: Supprimer les VRFs
+      netbox.netbox.netbox_vrf:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ vrfs }}"
+
+    # 11. Route Targets
+    - name: Supprimer les route targets
+      netbox.netbox.netbox_route_target:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ route_targets }}"
+
+    # 12. ASNs
+    - name: Supprimer les ASNs
+      netbox.netbox.netbox_asn:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          asn: "{{ item.asn }}"
+          rir: "{{ item.rir }}"
+        state: absent
+      loop: "{{ asns }}"
+
+    # 13. RIR
+    - name: Supprimer le RIR
+      netbox.netbox.netbox_rir:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "RFC6996"
+          slug: "RFC6996"
+        state: absent
+
+    # 14. Platforms
+    - name: Supprimer les platforms
+      netbox.netbox.netbox_platform:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ platforms }}"
+
+    # 15. Device Roles
+    - name: Supprimer les device roles
+      netbox.netbox.netbox_device_role:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ device_roles }}"
+
+    # 16. Device Types
+    - name: Supprimer les device types
+      netbox.netbox.netbox_device_type:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          model: "{{ item.1.model }}"
+          manufacturer: "{{ item.0.manufacturer }}"
+        state: absent
+      loop: "{{ manufacturers_and_devices | subelements('device_types') }}"
+
+    # 17. Racks
+    - name: Supprimer les racks
+      netbox.netbox.netbox_rack:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          site: "{{ item.site }}"
+        state: absent
+      loop: "{{ racks }}"
+
+    # 18. Locations
+    - name: Supprimer les locations
+      netbox.netbox.netbox_location:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          site: "{{ item.site }}"
+        state: absent
+      loop: "{{ locations }}"
+
+    # 19. Manufacturers
+    - name: Supprimer les manufacturers
+      netbox.netbox.netbox_manufacturer:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.manufacturer }}"
+        state: absent
+      loop: "{{ manufacturers_and_devices }}"
+
+    # 20. Sites
+    - name: Supprimer les sites
+      netbox.netbox.netbox_site:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ sites }}"
+
+    # 21. Site Groups
+    - name: Supprimer les site groups
+      netbox.netbox.netbox_site_group:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ site_groups }}"
+
+    # 22. Regions (enfants avant parents)
+    - name: Supprimer les regions
+      netbox.netbox.netbox_region:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+        state: absent
+      loop: "{{ regions }}"
