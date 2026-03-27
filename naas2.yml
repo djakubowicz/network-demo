@@ -790,7 +790,7 @@
         description: "OOB Global"
         status: container
         
-    prefixes_actives:
+    prefixes_active:
       # Paris DC1
       - prefix: 10.10.100.0/24
         description: "Paris DC1 - MGMT"
