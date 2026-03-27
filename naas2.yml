@@ -1299,7 +1299,9 @@
           description: "{{ item.description }}"
           status: "{{ item.status }}"
           vrf: "{{ item.vrf | default(omit) }}"
-          vlan: "{{ item.vlan | default(omit) }}"
+          vlan:
+             vid: "{{ item.vlan | default(omit) }}"
+             site: "{{ item.site | default(omit) }}"
         state: present
       loop: "{{ prefixes }}"
 
