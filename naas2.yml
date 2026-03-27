@@ -311,7 +311,6 @@
         manufacturer: Fortinet
       - name: Linux
         slug: linux
-        manufacturer: HPE
 
     # ============================================================
     # DEVICES
@@ -1224,7 +1223,7 @@
         data:
           name: "{{ item.name }}"
           slug: "{{ item.slug }}"
-          manufacturer: "{{ item.manufacturer }}"
+          manufacturer: "{{ item.manufacturer | default(omit) }}"
           napalm_driver: "{{ item.napalm_driver | default(omit) }}"
         state: present
       loop: "{{ platforms }}"
