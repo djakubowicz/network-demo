@@ -1400,5 +1400,6 @@
           protocol: "{{ item.protocol }}"
           ports: "{{ item.ports }}"
           description: "{{ item.description }}"
+          parent_object_type: "dcim.device"
         state: present
       loop: "{{ services }}"
