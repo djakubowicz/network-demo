@@ -1,0 +1,52 @@
+---
+- name: Network as Code - Infrastructure complète NetBox
+  vars_files: vars/main.yml
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    netbox_url: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
+    netbox_token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+
+    # ============================================================
+    # SITES & LOCATIONS
+    # ============================================================
+    sites:
+      - name: Paris-DC1
+        slug: paris-dc1
+        status: active
+        region: Europe
+        description: "Datacenter principal Paris"
+        physical_address: "1 Rue de la Paix, 75001 Paris"
+        time_zone: "Europe/Paris"
+
+      - name: Lyon-DC2
+        slug: lyon-dc2
+        status: active
+        region: Europe
+        description: "Datacenter secondaire Lyon"
+        physical_address: "10 Rue Garibaldi, 69006 Lyon"
+        time_zone: "Europe/Paris"
+
+
+  # ============================================================
+  # TASKS
+  # ============================================================
+  tasks:
+
+
+    # --- Sites ---
+    - name: Créer les sites
+      netbox.netbox.netbox_site:
+        netbox_url: "{{ netbox_url }}"
+        netbox_token: "{{ netbox_token }}"
+        data:
+          name: "{{ item.name }}"
+          slug: "{{ item.slug }}"
+          status: "{{ item.status }}"
+          description: "{{ item.description }}"
+          physical_address: "{{ item.physical_address }}"
+          time_zone: "{{ item.time_zone }}"
+        state: present
+      loop: "{{ sites }}"
